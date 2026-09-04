@@ -388,10 +388,10 @@ Resultado: `news.matizal.com` → `91.134.43.229`.
 con `dig news.matizal.com` o `nslookup news.matizal.com`).
 
 ```bash
-sudo certbot certonly --webroot -w /var/www/acme -d news.matizal.com
+sudo certbot certonly --webroot -w /var/www/news-matizal -d news.matizal.com
 ```
 
-(Asegúrate de que `/var/www/acme` existe y que el vhost HTTP de nginx sirve
+(Asegúrate de que `/var/www/news-matizal` existe y que el vhost HTTP de nginx sirve
 `/.well-known/acme-challenge/` desde ahí — ver `deploy/nginx-host/news-matizal.conf`.)
 
 ### 11.4. Nginx del host
