@@ -1,0 +1,35 @@
+name: Deploy a VPS
+
+# Al hacer push a main, conecta por SSH al VPS y ejecuta scripts/deploy.sh
+# remotamente (git pull + build + docker compose + healthcheck).
+#
+# Requiere configurar en Settings > Secrets and variables > Actions de este
+# repositorio en GitHub:
+#   VPS_SSH_KEY   - clave privada SSH con acceso al VPS (usuario con permisos
+#                   sobre /path/to/news-matizal y el grupo docker)
+#   VPS_HOST      - IP o hostname del VPS (91.134.43.229)
+#   VPS_USER      - usuario SSH en el VPS
+#   VPS_APP_PATH  - ruta absoluta del proyecto en el VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configurar agente SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Añadir host a known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Desplegar en el VPS
+        run: |
+          ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "cd '${{ secrets.VPS_APP_PATH }}' && ./scripts/deploy.sh"

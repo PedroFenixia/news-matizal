@@ -1,0 +1,232 @@
+{
+  "type": "general",
+  "date": "2026-09-04",
+  "updatedAt": "2026-09-04T08:15:00.000Z",
+  "editionId": "initial",
+  "editionSequence": 0,
+  "editionLabel": "Edición inicial",
+  "isDemo": true,
+  "generatedBy": "demo-fixture",
+  "executiveSummary": [
+    {
+      "headline": "Arranca el curso político con la agenda parlamentaria como principal foco",
+      "detail": "El Congreso retoma la actividad tras el parón estival con varios proyectos de ley pendientes de tramitación y la negociación presupuestaria como telón de fondo.",
+      "priority": "important"
+    },
+    {
+      "headline": "Los cuatro principales diarios coinciden en situar la vuelta al cole como tema destacado",
+      "detail": "El inicio del curso escolar centra portadas junto a reportajes sobre precios de material y libros de texto.",
+      "priority": "context"
+    },
+    {
+      "headline": "Previsión de altas temperaturas en el sur peninsular durante los próximos días",
+      "detail": "La Aemet mantiene avisos por calor en varias comunidades, con especial atención a Andalucía y Extremadura.",
+      "priority": "important"
+    },
+    {
+      "headline": "Movimientos en el panorama internacional relacionados con la agenda diplomática europea",
+      "detail": "Bruselas retoma reuniones de alto nivel esta semana; varios diarios adelantan agenda de la próxima cumbre europea.",
+      "priority": "context"
+    },
+    {
+      "headline": "Sanidad y comunidades autónomas preparan la campaña de vacunación de otoño",
+      "detail": "Se espera el calendario oficial de vacunación frente a gripe y covid en las próximas semanas.",
+      "priority": "context"
+    }
+  ],
+  "sections": [
+    {
+      "key": "B",
+      "title": "Política nacional",
+      "intro": "La actividad parlamentaria marca el arranque de septiembre.",
+      "items": [
+        {
+          "id": "gen-b-01",
+          "headline": "El Congreso retoma la actividad parlamentaria tras el receso estival",
+          "body": "Los grupos parlamentarios preparan la agenda de otoño, con la negociación presupuestaria y varias iniciativas legislativas pendientes de debate en las próximas semanas.",
+          "priority": "important",
+          "nature": "fact",
+          "sources": [
+            { "outlet": "El País", "title": "Portada — sección Política", "publishedAt": "2026-09-04T06:30:00.000Z", "category": "Política" },
+            { "outlet": "El Mundo", "title": "Portada — sección España", "publishedAt": "2026-09-04T06:45:00.000Z", "category": "Política" }
+          ]
+        },
+        {
+          "id": "gen-b-02",
+          "headline": "Los partidos fijan posiciones de cara al nuevo curso político",
+          "body": "Distintas formaciones han avanzado sus prioridades legislativas para el tramo final del año, con diferencias notables en el diagnóstico económico y social.",
+          "priority": "context",
+          "nature": "analysis",
+          "sources": [
+            { "outlet": "ABC", "title": "Análisis — arranque de curso político", "publishedAt": "2026-09-04T07:00:00.000Z", "category": "Política" }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "C",
+      "title": "Sociedad",
+      "items": [
+        {
+          "id": "gen-c-01",
+          "headline": "Comienza el curso escolar en varias comunidades autónomas",
+          "body": "Millones de alumnos vuelven a las aulas esta semana. Los diarios repasan el gasto medio por familia en material y libros, con diferencias significativas según territorio.",
+          "priority": "context",
+          "nature": "fact",
+          "sources": [
+            { "outlet": "La Razón", "title": "Reportaje — vuelta al cole", "publishedAt": "2026-09-04T05:50:00.000Z", "category": "Sociedad" }
+          ]
+        },
+        {
+          "id": "gen-c-02",
+          "headline": "Aviso por altas temperaturas en el sur peninsular",
+          "body": "La Aemet mantiene avisos amarillos y naranjas por calor en varias provincias del sur durante los próximos días, con recomendaciones sanitarias para población vulnerable.",
+          "priority": "important",
+          "nature": "fact",
+          "sources": [
+            { "outlet": "El País", "title": "Portada — Sociedad", "publishedAt": "2026-09-04T06:10:00.000Z", "category": "Sociedad" },
+            { "outlet": "ABC", "title": "Portada — España", "publishedAt": "2026-09-04T06:20:00.000Z", "category": "Sociedad" }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "D",
+      "title": "Internacional",
+      "items": [
+        {
+          "id": "gen-d-01",
+          "headline": "Bruselas retoma la agenda diplomática de alto nivel esta semana",
+          "body": "Varias reuniones institucionales europeas marcan el calendario de los próximos días, con la política exterior y económica común como principales asuntos.",
+          "priority": "context",
+          "nature": "fact",
+          "sources": [
+            { "outlet": "El Mundo", "title": "Portada — Internacional", "publishedAt": "2026-09-04T06:40:00.000Z", "category": "Internacional" }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "E",
+      "title": "Economía",
+      "items": [
+        {
+          "id": "gen-e-01",
+          "headline": "El Gobierno prepara el calendario de negociación de los próximos Presupuestos",
+          "body": "Los diarios económicos y generalistas coinciden en señalar septiembre como mes clave para el arranque formal de la negociación presupuestaria.",
+          "priority": "important",
+          "nature": "analysis",
+          "sources": [
+            { "outlet": "La Razón", "title": "Análisis — calendario presupuestario", "publishedAt": "2026-09-04T07:10:00.000Z", "category": "Economía" }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "F",
+      "title": "Otros asuntos relevantes",
+      "items": [
+        {
+          "id": "gen-f-01",
+          "headline": "Sanidad ultima el calendario de vacunación de otoño",
+          "body": "Las comunidades autónomas esperan la confirmación oficial del calendario de vacunación frente a gripe y covid-19 para las próximas semanas.",
+          "priority": "context",
+          "nature": "fact",
+          "sources": [
+            { "outlet": "ABC", "title": "Portada — Sociedad", "publishedAt": "2026-09-04T06:55:00.000Z", "category": "Sanidad" }
+          ]
+        }
+      ]
+    }
+  ],
+  "newspapers": [
+    {
+      "outlet": "El País",
+      "summary": "Prioriza la agenda parlamentaria y el arranque del curso político, con amplio espacio también para la actualidad social y las olas de calor.",
+      "editorialStance": "Editorial centrado en el análisis institucional, con atención al calendario legislativo.",
+      "mainStories": [
+        "Retorno de la actividad parlamentaria",
+        "Aviso por calor en el sur",
+        "Vuelta al cole"
+      ]
+    },
+    {
+      "outlet": "El Mundo",
+      "summary": "Combina política nacional con una sección internacional reforzada esta semana por la agenda diplomática europea.",
+      "editorialStance": "Enfoque crítico con el ritmo de la negociación presupuestaria.",
+      "mainStories": [
+        "Agenda parlamentaria de otoño",
+        "Reuniones institucionales europeas"
+      ]
+    },
+    {
+      "outlet": "ABC",
+      "summary": "Pone el foco en sociedad y sanidad (vacunación de otoño), además de un análisis propio sobre el posicionamiento de los partidos.",
+      "editorialStance": "Línea editorial con perspectiva conservadora en el análisis político.",
+      "mainStories": [
+        "Posicionamiento de partidos de cara al curso",
+        "Calendario de vacunación"
+      ]
+    },
+    {
+      "outlet": "La Razón",
+      "summary": "Destaca el reportaje sobre gasto en vuelta al cole y un análisis propio sobre el calendario presupuestario.",
+      "editorialStance": "Enfoque práctico, con atención al impacto económico en los hogares.",
+      "mainStories": [
+        "Gasto familiar en vuelta al cole",
+        "Calendario de negociación presupuestaria"
+      ]
+    }
+  ],
+  "recommendedArticles": [
+    {
+      "outlet": "El País",
+      "title": "Análisis sobre el arranque del curso político",
+      "reason": "Ofrece una lectura de conjunto de las prioridades legislativas de cada grupo parlamentario para el otoño.",
+      "summary": "El artículo repasa, formación por formación, las prioridades anunciadas de cara a la negociación presupuestaria y el calendario legislativo del próximo trimestre.",
+      "nature": "analysis",
+      "source": { "outlet": "El País", "title": "Análisis — arranque de curso político", "url": "https://elpais.com" }
+    },
+    {
+      "outlet": "El Mundo",
+      "title": "Reportaje sobre la agenda diplomática europea",
+      "reason": "Contextualiza las reuniones institucionales previstas y su relevancia para España.",
+      "summary": "Un repaso a las citas europeas de la semana y a los asuntos que previsiblemente marcarán la agenda comunitaria en el corto plazo.",
+      "nature": "fact",
+      "source": { "outlet": "El Mundo", "title": "Portada — Internacional", "url": "https://www.elmundo.es" }
+    },
+    {
+      "outlet": "ABC",
+      "title": "Reportaje sobre el calendario de vacunación de otoño",
+      "reason": "Resume de forma clara qué grupos de población serán prioritarios y las fechas previstas.",
+      "summary": "El texto detalla las previsiones sanitarias de cara a la campaña de vacunación de otoño frente a gripe y covid-19.",
+      "nature": "fact",
+      "source": { "outlet": "ABC", "title": "Portada — Sociedad", "url": "https://www.abc.es" }
+    },
+    {
+      "outlet": "La Razón",
+      "title": "Reportaje sobre el gasto en vuelta al cole",
+      "reason": "Aporta datos comparativos del gasto medio por familia y su evolución interanual.",
+      "summary": "Un análisis del coste medio de la vuelta al cole por comunidad autónoma, con comparativa respecto al año anterior.",
+      "nature": "fact",
+      "source": { "outlet": "La Razón", "title": "Reportaje — vuelta al cole", "url": "https://www.larazon.es" }
+    }
+  ],
+  "comparison": [
+    { "outlet": "El País", "mainFocus": "Agenda parlamentaria y curso político", "interpretation": "Lectura institucional, centrada en el calendario legislativo", "nature": "analysis" },
+    { "outlet": "El Mundo", "mainFocus": "Política nacional e internacional", "interpretation": "Tono crítico con el ritmo de la negociación presupuestaria", "nature": "opinion" },
+    { "outlet": "ABC", "mainFocus": "Sociedad y sanidad", "interpretation": "Enfoque en el posicionamiento de partidos con perspectiva conservadora", "nature": "analysis" },
+    { "outlet": "La Razón", "mainFocus": "Impacto económico en los hogares", "interpretation": "Enfoque práctico sobre gasto familiar y presupuestos", "nature": "fact" }
+  ],
+  "watchToday": [
+    { "title": "Reapertura de la actividad parlamentaria", "description": "Primeras sesiones tras el receso estival, con la negociación presupuestaria de fondo.", "when": "Esta semana", "priority": "important" },
+    { "title": "Avisos meteorológicos por calor", "description": "Seguimiento de los avisos de la Aemet en el sur peninsular.", "when": "Próximos días", "priority": "context" },
+    { "title": "Calendario oficial de vacunación de otoño", "description": "Se espera la confirmación de fechas por parte de Sanidad.", "when": "Próximas semanas", "priority": "context" }
+  ],
+  "sources": [
+    { "outlet": "El País", "url": "https://elpais.com", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "general" },
+    { "outlet": "El Mundo", "url": "https://www.elmundo.es", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "general" },
+    { "outlet": "ABC", "url": "https://www.abc.es", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "general" },
+    { "outlet": "La Razón", "url": "https://www.larazon.es", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "general" }
+  ]
+}

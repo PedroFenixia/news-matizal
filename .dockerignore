@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+data/dev.sqlite
+data/dev.sqlite-*
+npm-debug.log*
+README.md
+.DS_Store

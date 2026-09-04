@@ -1,0 +1,17 @@
+{
+  "name": "Matizal News",
+  "short_name": "Matizal News",
+  "description": "Briefing diario ejecutivo de prensa española y mercados financieros.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f2eb",
+  "theme_color": "#f5f2eb",
+  "icons": [
+    {
+      "src": "/brand/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

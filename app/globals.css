@@ -1,26 +1,173 @@
 @import "tailwindcss";
 
+/*
+ * Identidad visual Matizal News.
+ *
+ * Paleta base tomada del branding real de matizal.com (modo claro, valores
+ * exactos confirmados). El modo oscuro es una derivación propia coherente
+ * con esa identidad (negro cálido, no azulado, mismo verde de acento).
+ * Todo centralizado aquí como custom properties: los componentes NUNCA
+ * deben usar hex sueltos.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f5f2eb;
+  --paper-2: #ede8dc;
+  --paper-3: #e4ddca;
+  --ink: #1a1a1a;
+  --ink-2: #3a3a3a;
+  --ink-3: #6b6b66;
+  --rule: #1a1a1a;
+  --rule-soft: #c9c2b0;
+  --green: #009080;
+  --green-dark: #007368;
+  --green-soft: #dcece9;
+  --red: #c8102e;
+
+  /* Niveles de prioridad editorial, sobrios (no saturados). */
+  --priority-attention: var(--red);
+  --priority-important: #b8791a;
+  --priority-context: var(--ink-3);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --surface: var(--paper-2);
+  --surface-2: var(--paper-3);
+  --border: var(--rule-soft);
+  --border-strong: var(--rule);
+  --accent: var(--green);
+  --accent-dark: var(--green-dark);
+  --accent-soft: var(--green-soft);
+  --muted: var(--ink-3);
+
+  color-scheme: light;
+}
+
+/* Modo oscuro por preferencia de sistema (cuando no hay elección manual). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141310;
+    --paper-2: #1c1a16;
+    --paper-3: #24211c;
+    --ink: #f3efe6;
+    --ink-2: #d8d2c4;
+    --ink-3: #9c9587;
+    --rule: #f3efe6;
+    --rule-soft: #3a362d;
+    --green: #00a896;
+    --green-dark: #17c4ae;
+    --green-soft: #16302c;
+    --red: #e0536a;
+
+    --priority-attention: var(--red);
+    --priority-important: #d69a4a;
+    --priority-context: var(--ink-3);
+
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --surface: var(--paper-2);
+    --surface-2: var(--paper-3);
+    --border: var(--rule-soft);
+    --border-strong: var(--rule);
+    --accent: var(--green);
+    --accent-dark: var(--green-dark);
+    --accent-soft: var(--green-soft);
+    --muted: var(--ink-3);
+
+    color-scheme: dark;
+  }
+}
+
+/* Modo oscuro forzado manualmente (toggle de tema, gana siempre). */
+:root[data-theme="dark"] {
+  --paper: #141310;
+  --paper-2: #1c1a16;
+  --paper-3: #24211c;
+  --ink: #f3efe6;
+  --ink-2: #d8d2c4;
+  --ink-3: #9c9587;
+  --rule: #f3efe6;
+  --rule-soft: #3a362d;
+  --green: #00a896;
+  --green-dark: #17c4ae;
+  --green-soft: #16302c;
+  --red: #e0536a;
+
+  --priority-attention: var(--red);
+  --priority-important: #d69a4a;
+  --priority-context: var(--ink-3);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --surface: var(--paper-2);
+  --surface-2: var(--paper-3);
+  --border: var(--rule-soft);
+  --border-strong: var(--rule);
+  --accent: var(--green);
+  --accent-dark: var(--green-dark);
+  --accent-soft: var(--green-soft);
+  --muted: var(--ink-3);
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-accent-soft: var(--accent-soft);
+  --color-muted: var(--muted);
+  --color-priority-attention: var(--priority-attention);
+  --color-priority-important: var(--priority-important);
+  --color-priority-context: var(--priority-context);
+  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+a {
+  color: inherit;
+}
+
+/* Utilidad para el número de sección tipo "§ 01" (recurso tipográfico de marca). */
+.section-mark {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* Scroll horizontal contenido para tablas en móvil (nunca overflow de página). */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }

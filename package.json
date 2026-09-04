@@ -2,14 +2,22 @@
   "name": "news-matizal",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:daily": "tsx scripts/generate-daily.ts",
+    "cleanup": "tsx scripts/cleanup.ts",
+    "import-briefing": "tsx scripts/import-briefing.ts",
+    "backup": "bash scripts/backup.sh"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",
+    "dotenv": "^17.4.2",
     "next": "16.3.4",
     "openai": "^7.10.0",
     "react": "19.2.8",
@@ -19,12 +27,19 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "better-sqlite3@13.0.3": true,
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true
   }
 }
