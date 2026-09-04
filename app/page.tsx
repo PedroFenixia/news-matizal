@@ -91,7 +91,7 @@ export default function HomePage() {
           {isDemo && <DemoBadge />}
         </div>
         <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight leading-[1.1] mb-3">
-          {greeting()}, Pedro
+          {greeting()}
         </h1>
         <p className="text-(--muted) capitalize mb-5">{today}</p>
         <p className="text-(--ink-2) leading-relaxed max-w-xl mb-6">
@@ -139,23 +139,23 @@ export default function HomePage() {
       <section className="py-8 border-b border-(--border) grid sm:grid-cols-2 gap-4">
         <Link
           href="/financiero"
-          className="group border border-(--border-strong) p-6 flex flex-col gap-2 hover:bg-(--ink) hover:text-(--paper) transition-colors"
+          className="group border border-(--border-strong) p-6 flex flex-col gap-2 transition-colors hover:border-(--accent)"
         >
-          <span className="font-mono text-[11px] uppercase tracking-wider text-(--accent) group-hover:text-(--accent)">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-(--accent)">
             Financiero
           </span>
-          <span className="font-serif text-xl font-medium">
+          <span className="font-serif text-xl font-medium text-(--foreground) group-hover:text-(--accent) transition-colors">
             Ver briefing financiero completo →
           </span>
         </Link>
         <Link
           href="/prensa-general"
-          className="group border border-(--border-strong) p-6 flex flex-col gap-2 hover:bg-(--ink) hover:text-(--paper) transition-colors"
+          className="group border border-(--border-strong) p-6 flex flex-col gap-2 transition-colors hover:border-(--accent)"
         >
-          <span className="font-mono text-[11px] uppercase tracking-wider text-(--accent) group-hover:text-(--accent)">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-(--accent)">
             Prensa general
           </span>
-          <span className="font-serif text-xl font-medium">
+          <span className="font-serif text-xl font-medium text-(--foreground) group-hover:text-(--accent) transition-colors">
             Ver briefing de prensa completo →
           </span>
         </Link>

@@ -8,7 +8,8 @@ export function WatchTodayList({ items }: { items: WatchItem[] }) {
       {items.map((item, idx) => (
         <li
           key={idx}
-          className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 py-4 border-b border-(--border) last:border-b-0"
+          data-priority={item.priority}
+          className="priority-item flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 py-4 border-b border-(--border) last:border-b-0"
         >
           <div className="sm:w-40 shrink-0 flex flex-col gap-1">
             <PriorityBadge level={item.priority} />

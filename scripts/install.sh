@@ -47,14 +47,18 @@ for dir in "${DIRS[@]}"; do
   chmod 750 "$dir"
 done
 
-# El contenedor Docker corre como el usuario "nextjs" (uid/gid 1001 fijo,
-# ver Dockerfile) — no como APP_USER del host. El volumen de la base de
-# datos debe ser escribible por ese uid, o el proceso Next.js no podrá
-# abrir la SQLite ("unable to open database file"). Se fija DESPUÉS del
-# bucle anterior para que no quede sobrescrito de vuelta a APP_USER.
+# El contenedor Docker corre como el usuario "nextjs" (uid 1001 fijo, ver
+# Dockerfile) — no como APP_USER del host. El volumen de la base de datos
+# debe ser escribible por ese uid (propietario), o el proceso Next.js no
+# podrá abrir la SQLite ("unable to open database file"). El GRUPO se deja
+# como APP_USER (con setgid) para que scripts/backup.sh, ejecutado por cron
+# como APP_USER directamente en el host, pueda LEER la base de datos sin
+# necesitar acceso al contenedor. Se fija DESPUÉS del bucle anterior para
+# que no quede sobrescrito de vuelta a APP_USER:APP_USER.
 DB_CONTAINER_UID=1001
-chown -R "${DB_CONTAINER_UID}:${DB_CONTAINER_UID}" "/var/lib/matizal-news"
+chown -R "${DB_CONTAINER_UID}:${APP_USER}" "/var/lib/matizal-news"
 chmod -R 750 "/var/lib/matizal-news"
+chmod g+s "/var/lib/matizal-news"
 
 echo
 echo "Directorios listos. Recuerda:"

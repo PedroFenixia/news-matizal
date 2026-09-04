@@ -7,7 +7,8 @@ export function ExecutiveSummaryList({ items }: { items: ExecutiveSummaryItem[] 
       {items.map((item, idx) => (
         <li
           key={idx}
-          className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-5 py-5 border-b border-(--border) last:border-b-0"
+          data-priority={item.priority}
+          className="priority-item flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-5 py-5 border-b border-(--border) last:border-b-0"
         >
           <span className="font-serif italic text-(--muted) text-lg sm:w-8 shrink-0">
             {String(idx + 1).padStart(2, "0")}

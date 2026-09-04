@@ -3,6 +3,7 @@ import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeScript } from "@/components/ThemeScript";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { ReadingProgress } from "@/components/ReadingProgress";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 import "./globals.css";
 
@@ -79,6 +80,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeScript />
       </head>
       <body className="min-h-full flex flex-col bg-(--background) text-(--foreground)">
+        <ReadingProgress />
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />

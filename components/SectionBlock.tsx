@@ -29,7 +29,7 @@ export function SectionBlock({ section }: { section: BriefingSection }) {
       ) : (
         <div className="flex flex-col gap-8">
           {section.items.map((item) => (
-            <article key={item.id} className="flex flex-col gap-2.5">
+            <article key={item.id} data-priority={item.priority} className="priority-item flex flex-col gap-2.5">
               <div className="flex flex-wrap items-center gap-2.5">
                 <PriorityBadge level={item.priority} />
                 {item.nature && (
