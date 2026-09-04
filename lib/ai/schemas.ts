@@ -9,14 +9,20 @@ import { z } from "zod";
 const prioritySchema = z.enum(["attention", "important", "context"]);
 const natureSchema = z.enum(["fact", "analysis", "opinion"]);
 
+// Nota: se usa .nullable() en vez de .optional() en todos los campos no
+// obligatorios de estos esquemas (a diferencia de lib/types.ts, que sí usa
+// optional?). Motivo: estos schemas alimentan también el JSON Schema que se
+// envía a OpenAI como "structured output" (ver toOpenAiJsonSchema más abajo)
+// — ahí TODO campo debe figurar en "required", y lo "opcional" se modela
+// como unión con null. .optional() no cumple ese requisito; .nullable() sí.
 const sourceRefSchema = z.object({
   outlet: z.string().min(1),
-  title: z.string().optional(),
-  url: z.string().url().optional(),
-  publishedAt: z.string().optional(),
-  retrievedAt: z.string().optional(),
-  category: z.string().optional(),
-  nature: natureSchema.optional(),
+  title: z.string().nullable(),
+  url: z.string().url().nullable(),
+  publishedAt: z.string().nullable(),
+  retrievedAt: z.string().nullable(),
+  category: z.string().nullable(),
+  nature: natureSchema.nullable(),
 });
 
 const briefingItemSchema = z.object({
@@ -24,22 +30,22 @@ const briefingItemSchema = z.object({
   headline: z.string().min(1),
   body: z.string().min(1),
   priority: prioritySchema,
-  nature: natureSchema.optional(),
-  sources: z.array(sourceRefSchema).default([]),
+  nature: natureSchema.nullable(),
+  sources: z.array(sourceRefSchema),
 });
 
 const briefingSectionSchema = z.object({
   key: z.string().min(1),
   title: z.string().min(1),
-  intro: z.string().optional(),
-  items: z.array(briefingItemSchema).default([]),
+  intro: z.string().nullable(),
+  items: z.array(briefingItemSchema),
 });
 
 const outletHighlightSchema = z.object({
   outlet: z.string().min(1),
   summary: z.string().min(1),
-  editorialStance: z.string().optional(),
-  mainStories: z.array(z.string()).default([]),
+  editorialStance: z.string().nullable(),
+  mainStories: z.array(z.string()),
 });
 
 const recommendedArticleSchema = z.object({
@@ -61,7 +67,7 @@ const editorialComparisonRowSchema = z.object({
 const watchItemSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
-  when: z.string().optional(),
+  when: z.string().nullable(),
   priority: prioritySchema,
 });
 
@@ -74,21 +80,70 @@ const executiveSummaryItemSchema = z.object({
 export const generalBriefingAiSchema = z.object({
   executiveSummary: z.array(executiveSummaryItemSchema).min(1),
   sections: z.array(briefingSectionSchema).min(1),
-  newspapers: z.array(outletHighlightSchema).default([]),
-  recommendedArticles: z.array(recommendedArticleSchema).default([]),
-  comparison: z.array(editorialComparisonRowSchema).default([]),
-  watchToday: z.array(watchItemSchema).default([]),
+  newspapers: z.array(outletHighlightSchema),
+  recommendedArticles: z.array(recommendedArticleSchema),
+  comparison: z.array(editorialComparisonRowSchema),
+  watchToday: z.array(watchItemSchema),
 });
 
 export const financialBriefingAiSchema = z.object({
   executiveSummary: z.array(executiveSummaryItemSchema).min(1),
   sections: z.array(briefingSectionSchema).min(1),
-  outlets: z.array(outletHighlightSchema).default([]),
-  businessImpact: z.array(briefingItemSchema).default([]),
-  recommendedArticles: z.array(recommendedArticleSchema).default([]),
-  comparison: z.array(editorialComparisonRowSchema).default([]),
-  watchToday: z.array(watchItemSchema).default([]),
+  outlets: z.array(outletHighlightSchema),
+  businessImpact: z.array(briefingItemSchema),
+  recommendedArticles: z.array(recommendedArticleSchema),
+  comparison: z.array(editorialComparisonRowSchema),
+  watchToday: z.array(watchItemSchema),
 });
+
+/**
+ * JSON Schema derivado para "structured outputs" de OpenAI (ver
+ * lib/ai/openai-provider.ts). z.toJSONSchema ya produce
+ * additionalProperties:false y solo mete en "required" los campos sin
+ * .nullable()/.optional() — como aquí TODO opcional está modelado con
+ * .nullable(), el resultado ya cumple el requisito estricto de OpenAI
+ * (100% de las claves en "required").
+ *
+ * OpenAI structured outputs en modo strict solo soporta un subconjunto de
+ * JSON Schema: rechaza keywords de validación adicionales como minLength,
+ * minItems o format (error "Invalid schema"). stripUnsupportedKeywords
+ * los elimina recursivamente — la validación real de esos límites la sigue
+ * haciendo zod (schema.parse) sobre la respuesta ya recibida.
+ */
+export function toOpenAiJsonSchema(
+  schema: typeof generalBriefingAiSchema | typeof financialBriefingAiSchema
+): Record<string, unknown> {
+  const raw = z.toJSONSchema(schema, { target: "draft-7" }) as Record<string, unknown>;
+  const rest = { ...raw };
+  delete rest.$schema;
+  return stripUnsupportedKeywords(rest) as Record<string, unknown>;
+}
+
+const UNSUPPORTED_KEYWORDS = new Set([
+  "minLength",
+  "maxLength",
+  "minItems",
+  "maxItems",
+  "format",
+  "pattern",
+  "minimum",
+  "maximum",
+]);
+
+function stripUnsupportedKeywords(node: unknown): unknown {
+  if (Array.isArray(node)) {
+    return node.map(stripUnsupportedKeywords);
+  }
+  if (node !== null && typeof node === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(node)) {
+      if (UNSUPPORTED_KEYWORDS.has(key)) continue;
+      out[key] = stripUnsupportedKeywords(value);
+    }
+    return out;
+  }
+  return node;
+}
 
 export type GeneralBriefingAiPayload = z.infer<typeof generalBriefingAiSchema>;
 export type FinancialBriefingAiPayload = z.infer<typeof financialBriefingAiSchema>;

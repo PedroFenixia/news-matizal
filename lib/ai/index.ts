@@ -3,6 +3,8 @@ import { OpenAiProvider } from "./openai-provider";
 import {
   generalBriefingAiSchema,
   financialBriefingAiSchema,
+  toOpenAiJsonSchema,
+  type GeneralBriefingAiPayload,
 } from "./schemas";
 import {
   buildGeneralSystemPrompt,
@@ -16,6 +18,81 @@ import type {
   NormalizedFeedItem,
   SourceRef,
 } from "../types";
+
+/**
+ * El JSON Schema enviado a OpenAI (ver schemas.ts) modela todo campo
+ * "opcional" como .nullable() en vez de .optional(), porque structured
+ * outputs de OpenAI exige que TODO figure en "required". lib/types.ts, en
+ * cambio, sigue usando `campo?: T` (undefined) como en el resto de la app.
+ * Esta función es el único punto de conversión null -> undefined entre
+ * ambos mundos, para no filtrar esta particularidad de OpenAI al resto del
+ * código (componentes, storage, etc. no deben preocuparse de esto).
+ */
+function nullToUndefined<T>(value: T | null | undefined): T | undefined {
+  return value === null ? undefined : value;
+}
+
+type AiSourceRef = {
+  outlet: string;
+  title: string | null;
+  url: string | null;
+  publishedAt: string | null;
+  retrievedAt: string | null;
+  category: string | null;
+  nature: SourceRef["nature"] | null;
+};
+
+type AiSection = GeneralBriefingAiPayload["sections"][number];
+type AiOutletHighlight = GeneralBriefingAiPayload["newspapers"][number];
+type AiRecommendedArticle = GeneralBriefingAiPayload["recommendedArticles"][number];
+
+function normalizeSourceRef(s: AiSourceRef): SourceRef {
+  return {
+    outlet: s.outlet,
+    title: nullToUndefined(s.title),
+    url: nullToUndefined(s.url),
+    publishedAt: nullToUndefined(s.publishedAt),
+    retrievedAt: nullToUndefined(s.retrievedAt),
+    category: nullToUndefined(s.category),
+    nature: nullToUndefined(s.nature),
+  };
+}
+
+function normalizeSections(sections: AiSection[]) {
+  return sections.map((section) => ({
+    key: section.key,
+    title: section.title,
+    intro: nullToUndefined(section.intro),
+    items: section.items.map((item) => ({
+      id: item.id,
+      headline: item.headline,
+      body: item.body,
+      priority: item.priority,
+      nature: nullToUndefined(item.nature),
+      sources: item.sources.map(normalizeSourceRef),
+    })),
+  }));
+}
+
+function normalizeOutlets(outlets: AiOutletHighlight[]) {
+  return outlets.map((o) => ({
+    outlet: o.outlet,
+    summary: o.summary,
+    editorialStance: nullToUndefined(o.editorialStance),
+    mainStories: o.mainStories,
+  }));
+}
+
+function normalizeArticles(articles: AiRecommendedArticle[]) {
+  return articles.map((a) => ({
+    outlet: a.outlet,
+    title: a.title,
+    reason: a.reason,
+    summary: a.summary,
+    nature: a.nature,
+    source: normalizeSourceRef(a.source),
+  }));
+}
 
 /**
  * Punto de entrada único de la capa de IA. El resto de la app (API routes,
@@ -60,6 +137,15 @@ function sourcesFromItems(items: NormalizedFeedItem[]): SourceRef[] {
   }));
 }
 
+function normalizeWatchToday(items: GeneralBriefingAiPayload["watchToday"]) {
+  return items.map((w) => ({
+    title: w.title,
+    description: w.description,
+    when: nullToUndefined(w.when),
+    priority: w.priority,
+  }));
+}
+
 export interface GenerateOptions {
   editionId: string;
   editionSequence: number;
@@ -76,7 +162,14 @@ export async function generateGeneralBriefing(
   const raw = await provider.generateJson({
     systemPrompt: buildGeneralSystemPrompt(),
     userPrompt: buildGeneralUserPrompt(items),
-    maxOutputTokens: 4500,
+    // Con structured outputs el modelo debe escribir explícitamente todo
+    // campo nullable (no puede omitirlos), lo que produce salidas más
+    // largas que en json_object suelto — margen ampliado para no truncar.
+    maxOutputTokens: 6500,
+    jsonSchema: {
+      name: "general_briefing",
+      schema: toOpenAiJsonSchema(generalBriefingAiSchema),
+    },
   });
 
   const parsed = generalBriefingAiSchema.parse(extractJson(raw));
@@ -89,11 +182,11 @@ export async function generateGeneralBriefing(
     editionSequence: options.editionSequence,
     editionLabel: options.editionLabel,
     executiveSummary: parsed.executiveSummary,
-    sections: parsed.sections,
-    newspapers: parsed.newspapers,
-    recommendedArticles: parsed.recommendedArticles,
+    sections: normalizeSections(parsed.sections),
+    newspapers: normalizeOutlets(parsed.newspapers),
+    recommendedArticles: normalizeArticles(parsed.recommendedArticles),
     comparison: parsed.comparison,
-    watchToday: parsed.watchToday,
+    watchToday: normalizeWatchToday(parsed.watchToday),
     sources: sourcesFromItems(items),
     generatedBy: provider.name,
     isDemo: false,
@@ -111,7 +204,11 @@ export async function generateFinancialBriefing(
   const raw = await provider.generateJson({
     systemPrompt: buildFinancialSystemPrompt(),
     userPrompt: buildFinancialUserPrompt(items),
-    maxOutputTokens: 5500,
+    maxOutputTokens: 7500,
+    jsonSchema: {
+      name: "financial_briefing",
+      schema: toOpenAiJsonSchema(financialBriefingAiSchema),
+    },
   });
 
   const parsed = financialBriefingAiSchema.parse(extractJson(raw));
@@ -124,12 +221,19 @@ export async function generateFinancialBriefing(
     editionSequence: options.editionSequence,
     editionLabel: options.editionLabel,
     executiveSummary: parsed.executiveSummary,
-    sections: parsed.sections,
-    outlets: parsed.outlets,
-    businessImpact: parsed.businessImpact,
-    recommendedArticles: parsed.recommendedArticles,
+    sections: normalizeSections(parsed.sections),
+    outlets: normalizeOutlets(parsed.outlets),
+    businessImpact: parsed.businessImpact.map((item) => ({
+      id: item.id,
+      headline: item.headline,
+      body: item.body,
+      priority: item.priority,
+      nature: nullToUndefined(item.nature),
+      sources: item.sources.map(normalizeSourceRef),
+    })),
+    recommendedArticles: normalizeArticles(parsed.recommendedArticles),
     comparison: parsed.comparison,
-    watchToday: parsed.watchToday,
+    watchToday: normalizeWatchToday(parsed.watchToday),
     sources: sourcesFromItems(items),
     generatedBy: provider.name,
     isDemo: false,

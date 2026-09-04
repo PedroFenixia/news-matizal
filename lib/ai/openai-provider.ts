@@ -27,8 +27,24 @@ export class OpenAiProvider implements AiProvider {
     systemPrompt: string;
     userPrompt: string;
     maxOutputTokens?: number;
+    jsonSchema?: { name: string; schema: Record<string, unknown> };
   }): Promise<string> {
     let lastError: unknown;
+
+    // Con schema: "structured outputs" (json_schema + strict) fuerza al
+    // modelo a cumplir la forma exacta durante la propia generación, en vez
+    // de solo pedirlo por texto — elimina la clase de error "el modelo puso
+    // un string donde iba un objeto" o "usó un valor fuera del enum".
+    const responseFormat = params.jsonSchema
+      ? ({
+          type: "json_schema" as const,
+          json_schema: {
+            name: params.jsonSchema.name,
+            schema: params.jsonSchema.schema,
+            strict: true,
+          },
+        })
+      : ({ type: "json_object" as const });
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
@@ -38,7 +54,7 @@ export class OpenAiProvider implements AiProvider {
             { role: "system", content: params.systemPrompt },
             { role: "user", content: params.userPrompt },
           ],
-          response_format: { type: "json_object" },
+          response_format: responseFormat,
           temperature: 0.4,
           max_tokens: params.maxOutputTokens ?? 4000,
         });
@@ -47,6 +63,14 @@ export class OpenAiProvider implements AiProvider {
         if (!content) {
           throw new AiProviderError(
             "Respuesta de OpenAI sin contenido (choices[0].message.content vacío)."
+          );
+        }
+
+        if (response.choices[0]?.finish_reason === "length") {
+          throw new AiProviderError(
+            `Respuesta de OpenAI truncada por límite de tokens (max_tokens=${
+              params.maxOutputTokens ?? 4000
+            }). Aumenta maxOutputTokens en lib/ai/index.ts.`
           );
         }
 

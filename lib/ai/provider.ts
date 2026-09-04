@@ -16,6 +16,17 @@ export interface AiProvider {
     systemPrompt: string;
     userPrompt: string;
     maxOutputTokens?: number;
+    /**
+     * JSON Schema opcional que describe la forma exacta esperada. Los
+     * proveedores que soporten "structured outputs" (ej. OpenAI) deben
+     * usarlo para forzar el cumplimiento estricto del esquema en la propia
+     * generación, en vez de confiar solo en instrucciones de texto — evita
+     * respuestas con campos de tipo incorrecto o valores fuera de enum.
+     * Proveedores sin este soporte pueden ignorarlo con seguridad: la
+     * validación zod de la capa superior sigue actuando como red de
+     * seguridad final en cualquier caso.
+     */
+    jsonSchema?: { name: string; schema: Record<string, unknown> };
   }): Promise<string>;
 }
 

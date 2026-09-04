@@ -3,6 +3,7 @@ import type { NormalizedFeedItem } from "../types";
 const COMMON_RULES = `
 Reglas estrictas:
 - Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin \`\`\`.
+- El esquema JSON es estricto: todo campo debe estar presente. Si un campo es conceptualmente opcional y no aplica (ej. no hay hora concreta para "when", o no hay "editorialStance"), pon explícitamente el valor null — nunca omitas la clave.
 - Escribe en español de España, tono ejecutivo, sobrio, profesional (piensa Financial Times / The Economist).
 - NUNCA reproduzcas ni traduzcas artículos completos: solo resúmenes propios y, como mucho, citas muy breves (una frase) si aportan valor real.
 - Distingue siempre HECHO (fact) de ANÁLISIS (analysis) y OPINIÓN (opinion) en el campo "nature".
