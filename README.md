@@ -333,24 +333,23 @@ cuando la edición activa es una revisión intradía con cambios,
 
 **Endpoints/scripts**: `POST /api/cron/intraday` (protegido por
 `CRON_SECRET`, igual que `/api/cron/daily`) o `scripts/generate-intraday.ts`
-vía crontab/systemd:
+(este último solo utilizable si el proyecto corre con Node ≥22 fuera de
+Docker — la imagen `standalone` no incluye `scripts/`/`tsx`, ver sección
+13.8). En producción, instalado en el crontab del usuario `debian` del VPS,
+bajo el mismo bloque `CRON_TZ=Europe/Madrid` que el resto de jobs de
+Matizal News (gestiona el cambio de hora automáticamente):
 
 ```cron
-# ⚠️ NO instalado en producción todavía — ver aviso más abajo.
-0 12 * * * cd /path/to/news-matizal && /usr/bin/npx tsx scripts/generate-intraday.ts >> /var/log/matizal-news/generate-intraday.log 2>&1
-0 17 * * * cd /path/to/news-matizal && /usr/bin/npx tsx scripts/generate-intraday.ts >> /var/log/matizal-news/generate-intraday.log 2>&1
+CRON_TZ=Europe/Madrid
+# revisión intradía (14:00 y 19:00)
+0 14 * * * curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" http://127.0.0.1:3021/api/cron/intraday >> /var/log/matizal-news/generate-intraday.log 2>&1
+0 19 * * * curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" http://127.0.0.1:3021/api/cron/intraday >> /var/log/matizal-news/generate-intraday.log 2>&1
 ```
 
-(12:00/17:00 UTC = 14:00/19:00 Europe/Madrid en horario de verano; usa un
-systemd timer con `OnCalendar=*-*-* 14,19:00:00` + `TZ=Europe/Madrid` si
-prefieres no depender de calcular el offset a mano — ver el ejemplo de
-systemd timer más abajo, sección 11.8, y replícalo para 14:00/19:00.)
-
-> **⚠️ Importante:** estos cron jobs están implementados (endpoint, script,
-> lógica) pero **deliberadamente NO instalados** en el crontab de producción
-> del VPS. Actívalos solo tras probar el flujo manualmente (`curl -X POST
-> -H "x-cron-secret: ..." https://news.matizal.com/api/cron/intraday` o
-> `npm run generate:intraday`) y confirmar que el resultado es el esperado.
+**Estado: ACTIVO en producción** (activado tras la prueba manual y
+confirmación explícita del usuario). Si necesitas replicar este setup en
+otro entorno, sigue el mismo orden: prueba manual primero (sección
+siguiente), activa el cron después.
 
 ### Limpieza mensual
 
@@ -375,13 +374,15 @@ Cron recomendado:
 Usa `sqlite3 "$DB" ".backup '...'"` (backup online, seguro con la BD en uso),
 no una copia de fichero en caliente. Conserva los últimos 30 días.
 
-### Prueba manual ANTES de activar los cron
+### Prueba manual antes de activar un cron nuevo
 
-**Ningún cron (generación diaria, revisión intradía) está instalado en el
-crontab de producción por defecto** — se documentan aquí como referencia,
-pero activarlos es una acción manual y deliberada del usuario (editar el
-crontab del VPS), nunca algo que se haga solo. El orden recomendado antes
-de esa primera activación:
+**Estado actual en producción: los tres cron (edición 10:00, revisión
+intradía 14:00/19:00, limpieza mensual día 5) están ACTIVOS** en el
+crontab del VPS, activados tras probar el flujo manualmente y con
+confirmación explícita del usuario. Si en el futuro añades un cron nuevo
+(otro horario, otro tipo de ejecución), sigue el mismo orden antes de
+instalarlo — activar un cron es siempre una acción manual y deliberada,
+nunca algo que se haga solo:
 
 ```bash
 # 1. Test de fuentes: comprueba que los RSS responden, SIN gastar tokens de OpenAI.
