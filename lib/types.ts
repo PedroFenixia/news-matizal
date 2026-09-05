@@ -15,11 +15,13 @@ export type EditorialNature = "fact" | "analysis" | "opinion";
 
 /**
  * Etiqueta de una revisión intradía (ver lib/intraday.ts): marca si un punto
- * es nuevo desde la última edición/revisión del día, o si ya existía pero se
- * ha actualizado (nueva información, cambio de prioridad, etc.). Ausente en
- * puntos que no cambian entre revisiones.
+ * es nuevo desde la última edición/revisión del día, si ya existía pero se
+ * ha ampliado/actualizado, o si corrige/invalida información publicada
+ * antes (mismo mecanismo que "updated" pero semánticamente distinto: el
+ * lector debe saber que lo anterior estaba mal, no solo incompleto).
+ * Ausente en puntos que no cambian entre revisiones.
  */
-export type RevisionTag = "new" | "updated";
+export type RevisionTag = "new" | "updated" | "correction";
 
 /** Una fuente/artículo original citado, nunca con contenido íntegro. */
 export interface SourceRef {
@@ -127,6 +129,8 @@ export interface ExecutiveSummaryItem {
 export interface RevisionSummary {
   newCount: number;
   updatedCount: number;
+  correctionCount: number;
+  discardedCount: number;
   /** Total de puntos considerados al contrastar (para trazabilidad/logs). */
   consideredCount: number;
 }

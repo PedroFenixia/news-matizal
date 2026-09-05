@@ -162,23 +162,40 @@ export type FinancialBriefingAiPayload = z.infer<typeof financialBriefingAiSchem
  * actuales, y devuelve qué cambia. El merge en el documento completo lo hace
  * código determinista (lib/intraday.ts), no la IA.
  */
+/**
+ * Cinco estados de clasificación de una novedad en una revisión intradía:
+ * - new_item: noticia nueva suficientemente importante para el briefing.
+ * - update_existing: evolución relevante de una noticia ya cubierta.
+ * - correction: la novedad CORRIGE o INVALIDA información ya publicada
+ *   (mismo mecanismo que update_existing — reemplaza el item por targetItemId
+ *   — pero se distingue visualmente como "Corregido", no "Actualizado", para
+ *   que el lector entienda que lo anterior estaba desactualizado/incorrecto,
+ *   no solo ampliado).
+ * - no_change (UNCHANGED): no aporta nada que cambie el briefing.
+ * - discarded (DISCARDED): irrelevante, ruido, no merece aparecer.
+ * discarded y no_change se comportan igual en el merge (no producen ningún
+ * cambio); se distinguen solo para trazabilidad/logs de por qué se descartó
+ * cada artículo nuevo.
+ */
 const deltaClassificationSchema = z.enum([
   "new_item",
   "update_existing",
+  "correction",
   "no_change",
+  "discarded",
 ]);
 
 const deltaChangeSchema = z.object({
   classification: deltaClassificationSchema,
   /**
    * Sección destino (key de BriefingSection, ej. "B") para new_item. Para
-   * update_existing, la sección donde vive el id referenciado (informativo,
-   * el merge busca el id en todas las secciones igualmente).
+   * update_existing/correction, la sección donde vive el id referenciado
+   * (informativo, el merge busca el id en todas las secciones igualmente).
    */
   sectionKey: z.string().nullable(),
-  /** Para update_existing: id del BriefingItem existente a actualizar. Null en new_item. */
+  /** Para update_existing/correction: id del BriefingItem existente a actualizar. Null en new_item. */
   targetItemId: z.string().nullable(),
-  /** Contenido del punto nuevo o actualizado. Null si classification es no_change. */
+  /** Contenido del punto nuevo o actualizado. Null si classification es no_change/discarded. */
   item: z
     .object({
       id: z.string().min(1),

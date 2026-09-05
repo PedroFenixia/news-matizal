@@ -20,3 +20,17 @@ export function isAuthorizedCronRequest(req: NextRequest): boolean {
 
   return provided === expected;
 }
+
+/**
+ * Autoriza el panel de diagnóstico/uso (/admin/usage, sección 11 del
+ * brief) — secreto propio (ADMIN_SECRET), independiente de CRON_SECRET,
+ * porque uno protege endpoints de escritura invocados por máquinas y el
+ * otro una vista de solo lectura que Pedro abre a mano en el navegador.
+ * Se pasa por query param (?secret=...) porque es una página, no una API
+ * invocada por curl con headers.
+ */
+export function isAuthorizedAdminSecret(providedSecret: string | undefined): boolean {
+  const expected = process.env.ADMIN_SECRET;
+  if (!expected) return false;
+  return providedSecret === expected;
+}

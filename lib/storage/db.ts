@@ -75,6 +75,51 @@ function migrate(db: Database.Database): void {
 
     CREATE INDEX IF NOT EXISTS idx_generation_log_started
       ON generation_log(started_at);
+
+    -- Telemetría de CADA llamada a OpenAI (una fila por llamada real a la
+    -- API, incluidos reintentos) — base del panel de uso/coste (sección 11
+    -- del brief) y de la protección de presupuesto (lib/budget.ts).
+    CREATE TABLE IF NOT EXISTS openai_usage (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      run_id TEXT,
+      briefing_type TEXT CHECK (briefing_type IN ('general', 'financial')),
+      trigger TEXT,
+      task_kind TEXT NOT NULL CHECK (task_kind IN ('fast', 'editorial')),
+      operation TEXT NOT NULL,
+      model TEXT NOT NULL,
+      input_tokens INTEGER NOT NULL DEFAULT 0,
+      cached_input_tokens INTEGER NOT NULL DEFAULT 0,
+      output_tokens INTEGER NOT NULL DEFAULT 0,
+      total_tokens INTEGER NOT NULL DEFAULT 0,
+      cost_eur REAL NOT NULL DEFAULT 0,
+      duration_ms INTEGER NOT NULL DEFAULT 0,
+      success INTEGER NOT NULL,
+      error_message TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_openai_usage_created
+      ON openai_usage(created_at);
+
+    CREATE INDEX IF NOT EXISTS idx_openai_usage_run
+      ON openai_usage(run_id);
+
+    -- Artículos ya procesados por la IA (deduplicación/caché, sección 8 del
+    -- brief): antes de enviar un artículo a OpenAI se comprueba si su hash
+    -- ya está aquí para el mismo tipo+fecha — evita reprocesar contenido
+    -- sin cambios entre revisiones. Ver lib/dedup.ts.
+    CREATE TABLE IF NOT EXISTS processed_articles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL CHECK (type IN ('general', 'financial')),
+      date TEXT NOT NULL,
+      content_hash TEXT NOT NULL,
+      url TEXT,
+      processed_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(type, date, content_hash)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_processed_articles_lookup
+      ON processed_articles(type, date, content_hash);
   `);
 }
 

@@ -1,3 +1,20 @@
+import type { TaskKind } from "./model-config";
+
+/** Métricas de uso de una llamada a IA, para telemetría/coste (ver lib/telemetry.ts). */
+export interface AiUsage {
+  model: string;
+  inputTokens: number;
+  cachedInputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  durationMs: number;
+}
+
+export interface AiGenerateResult {
+  content: string;
+  usage: AiUsage;
+}
+
 /**
  * Interfaz de proveedor de IA, desacoplada del proveedor concreto (hoy
  * OpenAI, mañana cualquier otro). Cambiar de proveedor implica solo
@@ -9,13 +26,21 @@ export interface AiProvider {
 
   /**
    * Pide al modelo generar JSON siguiendo `systemPrompt` + `userPrompt`.
-   * Debe devolver el texto crudo de la respuesta (JSON string); la
-   * validación contra el esquema zod ocurre en la capa superior.
+   * Devuelve el texto crudo de la respuesta (JSON string) junto con las
+   * métricas de uso de la llamada — la validación contra el esquema zod
+   * ocurre en la capa superior.
    */
   generateJson(params: {
     systemPrompt: string;
     userPrompt: string;
     maxOutputTokens?: number;
+    /**
+     * Qué rol de modelo usar (ver lib/ai/model-config.ts): "fast" para
+     * clasificación/detección de novedades, "editorial" para síntesis y
+     * redacción final. Por defecto "editorial" (generación completa de un
+     * briefing es la tarea editorial por excelencia).
+     */
+    taskKind?: TaskKind;
     /**
      * JSON Schema opcional que describe la forma exacta esperada. Los
      * proveedores que soporten "structured outputs" (ej. OpenAI) deben
@@ -27,7 +52,7 @@ export interface AiProvider {
      * seguridad final en cualquier caso.
      */
     jsonSchema?: { name: string; schema: Record<string, unknown> };
-  }): Promise<string>;
+  }): Promise<AiGenerateResult>;
 }
 
 export class AiProviderError extends Error {

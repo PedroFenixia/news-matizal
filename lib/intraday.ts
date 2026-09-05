@@ -11,6 +11,7 @@ import {
   type IntradayDeltaPayload,
 } from "./ai/schemas";
 import { buildIntradaySystemPrompt, buildIntradayUserPrompt } from "./ai/prompts";
+import { recordUsage } from "./telemetry";
 import type {
   Briefing,
   BriefingItem,
@@ -90,38 +91,60 @@ function normalizeDeltaItem(
   };
 }
 
+export interface ApplyChangesResult {
+  sections: BriefingSection[];
+  newCount: number;
+  updatedCount: number;
+  correctionCount: number;
+  discardedCount: number;
+}
+
 /**
  * Aplica los "changes" del delta sobre las secciones de la edición anterior:
  * new_item se añade a la sección indicada (o, si no existe/no se indica, a
  * la primera sección — nunca se descarta un punto nuevo silenciosamente);
- * update_existing reemplaza el item con ese id en cualquier sección donde
- * aparezca. Ambos casos marcan revisionTag; el resto de items conserva el
+ * update_existing/correction reemplazan el item con ese id en cualquier
+ * sección donde aparezca (correction se distingue solo por el revisionTag
+ * resultante — "correction" en vez de "updated" — para que la UI lo marque
+ * como "Corregido"). no_change/discarded no producen ningún cambio, solo
+ * se cuentan para el resumen/log. El resto de items conserva el revisionTag
  * que tuviera (normalmente ninguno, de una edición ya consolidada).
  */
 export function applySectionChanges(
   sections: BriefingSection[],
   changes: IntradayDeltaPayload["changes"]
-): { sections: BriefingSection[]; newCount: number; updatedCount: number } {
+): ApplyChangesResult {
   // Copia profunda superficial suficiente: solo mutamos items[] por sección.
   const result = sections.map((s) => ({ ...s, items: [...s.items] }));
   let newCount = 0;
   let updatedCount = 0;
+  let correctionCount = 0;
+  let discardedCount = 0;
 
   for (const change of changes) {
+    if (change.classification === "discarded") {
+      discardedCount++;
+      continue;
+    }
     if (change.classification === "no_change" || !change.item) continue;
 
-    if (change.classification === "update_existing" && change.targetItemId) {
+    if (
+      (change.classification === "update_existing" || change.classification === "correction") &&
+      change.targetItemId
+    ) {
+      const tag = change.classification === "correction" ? "correction" : "updated";
       let applied = false;
       for (const section of result) {
         const idx = section.items.findIndex((i) => i.id === change.targetItemId);
         if (idx !== -1) {
-          section.items[idx] = { ...normalizeDeltaItem(change.item), revisionTag: "updated" };
+          section.items[idx] = { ...normalizeDeltaItem(change.item), revisionTag: tag };
           applied = true;
           break;
         }
       }
       if (applied) {
-        updatedCount++;
+        if (tag === "correction") correctionCount++;
+        else updatedCount++;
         continue;
       }
       // targetItemId no encontrado (la IA se equivocó de id): trátalo como
@@ -136,7 +159,7 @@ export function applySectionChanges(
     }
   }
 
-  return { sections: result, newCount, updatedCount };
+  return { sections: result, newCount, updatedCount, correctionCount, discardedCount };
 }
 
 function normalizeExecutiveSummaryDelta(
@@ -168,14 +191,26 @@ function normalizeWatchTodayDelta(
   }));
 }
 
+export interface RunIntradayOptions {
+  /** Para telemetría (ver lib/telemetry.ts). */
+  runId?: string;
+  trigger?: string;
+}
+
 /**
  * Ejecuta la revisión intradía. Devuelve null si no hay artículos nuevos
  * desde la última edición/revisión (no se llama a la IA ni se crea una fila
  * nueva — evita coste y ruido cuando de verdad no ha cambiado nada).
+ *
+ * La clasificación (new/updated/correction/no_change/discarded) usa el
+ * modelo "fast" (ver lib/ai/model-config.ts): es una tarea de clasificación
+ * y redacción incremental acotada, no la síntesis editorial completa que sí
+ * justifica el modelo "editorial" de generateGeneralBriefing/Financial.
  */
 export async function runIntradayRevision(
   previous: Briefing,
-  fetchedItems: NormalizedFeedItem[]
+  fetchedItems: NormalizedFeedItem[],
+  options: RunIntradayOptions = {}
 ): Promise<IntradayResult | null> {
   const newItems = detectNewItems(fetchedItems, previous);
 
@@ -186,27 +221,51 @@ export async function runIntradayRevision(
   const provider = getProvider();
   const label = previous.type === "general" ? "general" : "financial";
 
-  const raw = await provider.generateJson({
-    systemPrompt: buildIntradaySystemPrompt(label),
-    userPrompt: buildIntradayUserPrompt({
-      existingSections: previous.sections,
-      existingExecutiveSummary: previous.executiveSummary,
-      existingWatchToday: previous.watchToday,
-      newItems,
-    }),
-    maxOutputTokens: 4000,
-    jsonSchema: {
-      name: "intraday_delta",
-      schema: toOpenAiJsonSchema(intradayDeltaSchema),
-    },
+  let result;
+  try {
+    result = await provider.generateJson({
+      systemPrompt: buildIntradaySystemPrompt(label),
+      userPrompt: buildIntradayUserPrompt({
+        existingSections: previous.sections,
+        existingExecutiveSummary: previous.executiveSummary,
+        existingWatchToday: previous.watchToday,
+        newItems,
+      }),
+      maxOutputTokens: 4000,
+      taskKind: "fast",
+      jsonSchema: {
+        name: "intraday_delta",
+        schema: toOpenAiJsonSchema(intradayDeltaSchema),
+      },
+    });
+  } catch (err) {
+    recordUsage({
+      runId: options.runId,
+      briefingType: previous.type,
+      trigger: options.trigger,
+      taskKind: "fast",
+      operation: "intraday_classify",
+      usage: { model: "unknown", inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, totalTokens: 0, durationMs: 0 },
+      success: false,
+      errorMessage: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
+  }
+
+  recordUsage({
+    runId: options.runId,
+    briefingType: previous.type,
+    trigger: options.trigger,
+    taskKind: "fast",
+    operation: "intraday_classify",
+    usage: result.usage,
+    success: true,
   });
 
-  const delta = intradayDeltaSchema.parse(extractJson(raw));
+  const delta = intradayDeltaSchema.parse(extractJson(result.content));
 
-  const { sections, newCount, updatedCount } = applySectionChanges(
-    previous.sections,
-    delta.changes
-  );
+  const { sections, newCount, updatedCount, correctionCount, discardedCount } =
+    applySectionChanges(previous.sections, delta.changes);
 
   const executiveSummary = normalizeExecutiveSummaryDelta(
     delta.executiveSummary,
@@ -217,6 +276,8 @@ export async function runIntradayRevision(
   const revisionSummary: RevisionSummary = {
     newCount,
     updatedCount,
+    correctionCount,
+    discardedCount,
     consideredCount: newItems.length,
   };
 
@@ -248,7 +309,7 @@ export async function runIntradayRevision(
     sources: Array.from(mergedSourcesByUrl.values()),
     isIntradayRevision: true,
     revisionSummary,
-    generatedBy: provider.name,
+    generatedBy: `openai:${result.usage.model}`,
   };
 
   return { briefing: base as Briefing, revisionSummary };

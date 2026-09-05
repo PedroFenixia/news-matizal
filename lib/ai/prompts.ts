@@ -128,18 +128,22 @@ export function buildIntradaySystemPrompt(label: "general" | "financial"): strin
 
 Se te pasan: (1) el resumen ejecutivo y "qué vigilar hoy" YA PUBLICADOS, (2) un listado de las secciones existentes con los ids de sus puntos actuales (solo titular, para que sepas qué ya está cubierto), y (3) artículos de RSS NUEVOS desde la última revisión (no vistos antes).
 
-Tu tarea, para CADA artículo nuevo:
-- Si es una noticia realmente distinta de todo lo ya cubierto: clasifícalo "new_item", indica en qué sección existente encaja ("sectionKey") y redacta el punto (mismo formato que un BriefingItem normal).
-- Si amplía, corrige o cambia la importancia de un punto YA EXISTENTE (mismo hecho, información nueva): clasifícalo "update_existing", indica el "targetItemId" del punto que actualiza, y redacta el punto ACTUALIZADO completo (headline+body ya incorporando la novedad, no solo el añadido).
-- Si no aporta nada que cambie el briefing (repite lo mismo sin novedad real, es ruido, o es irrelevante): clasifícalo "no_change" y deja "item" en null.
+Tu tarea, para CADA artículo nuevo, clasifícalo en EXACTAMENTE uno de estos 5 estados:
+- "new_item": noticia realmente distinta de todo lo ya cubierto, suficientemente importante para el briefing. Indica en qué sección existente encaja ("sectionKey") y redacta el punto (mismo formato que un BriefingItem normal).
+- "update_existing": amplía o cambia la importancia de un punto YA EXISTENTE sin contradecirlo (mismo hecho, más información en la misma dirección). Indica el "targetItemId" del punto que actualiza, y redacta el punto ACTUALIZADO completo (headline+body ya incorporando la novedad).
+- "correction": la novedad CORRIGE o INVALIDA información ya publicada (el hecho no era como se dijo, cambió el desenlace, un dato era incorrecto, etc.) — no es solo "más información", es "lo anterior estaba mal o ha cambiado de verdad". Indica el "targetItemId" del punto que corrige, y redacta el punto CORREGIDO completo. Usa este estado con criterio: una corrección real es poco frecuente, no lo confundas con una simple actualización.
+- "no_change": no aporta nada que cambie el briefing (repite lo mismo sin novedad real desde una fuente distinta).
+- "discarded": ruido, irrelevante para el briefing, no merece aparecer aunque sea "nuevo" en sentido literal.
 
-No inventes ids de puntos existentes: usa EXACTAMENTE los ids que te paso. No generes "new_item" para algo que ya está cubierto por un punto existente — en ese caso es "update_existing" o "no_change".
+Para "no_change" y "discarded" deja "item" en null. Distíngelos solo para que quede constancia de por qué se descartó cada artículo (no cambia el resultado del briefing).
+
+No inventes ids de puntos existentes: usa EXACTAMENTE los ids que te paso. No generes "new_item" para algo que ya está cubierto por un punto existente — en ese caso es "update_existing", "correction", "no_change" o "discarded".
 
 Además, revisa y devuelve completos (no delta): "executiveSummary" (incorporando las novedades relevantes de mayor prioridad, sin perder puntos que sigan vigentes) y "watchToday" (actualizando eventos que ya hayan pasado o cambiado de horario).
 
 Debes devolver un JSON con esta forma exacta:
 {
-  "changes": [{ "classification": "new_item"|"update_existing"|"no_change", "sectionKey": string|null, "targetItemId": string|null, "item": { "id": string, "headline": string, "body": string, "priority": ..., "nature": ..., "sources": [...] } | null }],
+  "changes": [{ "classification": "new_item"|"update_existing"|"correction"|"no_change"|"discarded", "sectionKey": string|null, "targetItemId": string|null, "item": { "id": string, "headline": string, "body": string, "priority": ..., "nature": ..., "sources": [...] } | null }],
   "executiveSummary": [...],
   "watchToday": [...]
 }

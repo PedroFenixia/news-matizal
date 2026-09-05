@@ -18,6 +18,7 @@ import type {
   NormalizedFeedItem,
   SourceRef,
 } from "../types";
+import { recordUsage } from "../telemetry";
 
 /**
  * El JSON Schema enviado a OpenAI (ver schemas.ts) modela todo campo
@@ -163,6 +164,9 @@ export interface GenerateOptions {
   editionSequence: number;
   editionLabel: string;
   date: string;
+  /** Para telemetría (ver lib/telemetry.ts): a qué ejecución pertenece esta llamada. */
+  runId?: string;
+  trigger?: string;
 }
 
 export async function generateGeneralBriefing(
@@ -171,20 +175,46 @@ export async function generateGeneralBriefing(
 ): Promise<GeneralBriefing> {
   const provider = getProvider();
 
-  const raw = await provider.generateJson({
-    systemPrompt: buildGeneralSystemPrompt(),
-    userPrompt: buildGeneralUserPrompt(items),
-    // Con structured outputs el modelo debe escribir explícitamente todo
-    // campo nullable (no puede omitirlos), lo que produce salidas más
-    // largas que en json_object suelto — margen ampliado para no truncar.
-    maxOutputTokens: 6500,
-    jsonSchema: {
-      name: "general_briefing",
-      schema: toOpenAiJsonSchema(generalBriefingAiSchema),
-    },
+  let result;
+  try {
+    result = await provider.generateJson({
+      systemPrompt: buildGeneralSystemPrompt(),
+      userPrompt: buildGeneralUserPrompt(items),
+      // Con structured outputs el modelo debe escribir explícitamente todo
+      // campo nullable (no puede omitirlos), lo que produce salidas más
+      // largas que en json_object suelto — margen ampliado para no truncar.
+      maxOutputTokens: 6500,
+      taskKind: "editorial",
+      jsonSchema: {
+        name: "general_briefing",
+        schema: toOpenAiJsonSchema(generalBriefingAiSchema),
+      },
+    });
+  } catch (err) {
+    recordUsage({
+      runId: options.runId,
+      briefingType: "general",
+      trigger: options.trigger,
+      taskKind: "editorial",
+      operation: "generate_briefing",
+      usage: { model: "unknown", inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, totalTokens: 0, durationMs: 0 },
+      success: false,
+      errorMessage: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
+  }
+
+  recordUsage({
+    runId: options.runId,
+    briefingType: "general",
+    trigger: options.trigger,
+    taskKind: "editorial",
+    operation: "generate_briefing",
+    usage: result.usage,
+    success: true,
   });
 
-  const parsed = generalBriefingAiSchema.parse(extractJson(raw));
+  const parsed = generalBriefingAiSchema.parse(extractJson(result.content));
 
   const briefing: GeneralBriefing = {
     type: "general",
@@ -200,7 +230,7 @@ export async function generateGeneralBriefing(
     comparison: parsed.comparison,
     watchToday: normalizeWatchToday(parsed.watchToday),
     sources: sourcesFromItems(items),
-    generatedBy: provider.name,
+    generatedBy: `openai:${result.usage.model}`,
     isDemo: false,
   };
 
@@ -213,20 +243,46 @@ export async function generateFinancialBriefing(
 ): Promise<FinancialBriefing> {
   const provider = getProvider();
 
-  const raw = await provider.generateJson({
-    systemPrompt: buildFinancialSystemPrompt(),
-    userPrompt: buildFinancialUserPrompt(items),
-    // Ampliado tras observar un truncamiento real en producción con 7500
-    // (el financiero es la generación más larga: 9 secciones + businessImpact
-    // + outlets + comparison + recommendedArticles, todo con sources completas).
-    maxOutputTokens: 9000,
-    jsonSchema: {
-      name: "financial_briefing",
-      schema: toOpenAiJsonSchema(financialBriefingAiSchema),
-    },
+  let result;
+  try {
+    result = await provider.generateJson({
+      systemPrompt: buildFinancialSystemPrompt(),
+      userPrompt: buildFinancialUserPrompt(items),
+      // Ampliado tras observar un truncamiento real en producción con 7500
+      // (el financiero es la generación más larga: 9 secciones + businessImpact
+      // + outlets + comparison + recommendedArticles, todo con sources completas).
+      maxOutputTokens: 9000,
+      taskKind: "editorial",
+      jsonSchema: {
+        name: "financial_briefing",
+        schema: toOpenAiJsonSchema(financialBriefingAiSchema),
+      },
+    });
+  } catch (err) {
+    recordUsage({
+      runId: options.runId,
+      briefingType: "financial",
+      trigger: options.trigger,
+      taskKind: "editorial",
+      operation: "generate_briefing",
+      usage: { model: "unknown", inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, totalTokens: 0, durationMs: 0 },
+      success: false,
+      errorMessage: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
+  }
+
+  recordUsage({
+    runId: options.runId,
+    briefingType: "financial",
+    trigger: options.trigger,
+    taskKind: "editorial",
+    operation: "generate_briefing",
+    usage: result.usage,
+    success: true,
   });
 
-  const parsed = financialBriefingAiSchema.parse(extractJson(raw));
+  const parsed = financialBriefingAiSchema.parse(extractJson(result.content));
 
   const briefing: FinancialBriefing = {
     type: "financial",
@@ -250,7 +306,7 @@ export async function generateFinancialBriefing(
     comparison: parsed.comparison,
     watchToday: normalizeWatchToday(parsed.watchToday),
     sources: sourcesFromItems(items),
-    generatedBy: provider.name,
+    generatedBy: `openai:${result.usage.model}`,
     isDemo: false,
   };
 

@@ -125,8 +125,12 @@ Todas están documentadas en `.env.example`. Resumen:
 | `NEXT_PUBLIC_SITE_URL` | Sí (prod) | URL pública final (`https://news.matizal.com`). Toda URL absoluta de la app (OG, canonical, sitemap, compartir) parte de aquí. Fallback `http://localhost:3000` solo en dev. |
 | `OPENAI_API_KEY` | Sí, para generar contenido real | Clave de API de OpenAI. No hace falta para ver los datos demo. |
 | `AI_PROVIDER` | No (default `openai`) | Selecciona el proveedor de IA activo (ver sección 8). |
-| `OPENAI_MODEL` | No (default `gpt-4o-mini`) | Modelo de OpenAI a usar. |
-| `CRON_SECRET` | Sí (prod) | Secreto para autorizar `/api/cron/daily`, `/api/cron/cleanup` y `/api/refresh`. Genera uno con `openssl rand -hex 32`. |
+| `OPENAI_MODEL_FAST` | No (default `gpt-4o-mini`) | Modelo para tareas mecánicas: clasificación/detección de novedades en revisiones intradía (ver sección 9). |
+| `OPENAI_MODEL_EDITORIAL` | No (default `gpt-4o-mini`) | Modelo para síntesis/redacción del briefing completo (ver sección 9). |
+| `CRON_SECRET` | Sí (prod) | Secreto para autorizar `/api/cron/daily`, `/api/cron/intraday`, `/api/cron/cleanup` y `/api/refresh`. Genera uno con `openssl rand -hex 32`. |
+| `ADMIN_SECRET` | No, recomendado | Secreto del panel `/admin/usage` (coste/telemetría, ver sección 10). Sin definir, el panel rechaza todo acceso. |
+| `OPENAI_DAILY_BUDGET_EUR` | No | Límite de gasto diario en EUR; superado, aborta la siguiente ejecución antes de llamar a OpenAI (ver sección 10). |
+| `OPENAI_MONTHLY_BUDGET_EUR` | No | Igual que el anterior, en ventana mensual. |
 | `DATABASE_PATH` | Recomendado (prod) | Ruta de la SQLite. En VPS: `/var/lib/matizal-news/db.sqlite` (fuera del repo). En local, si se omite: `./data/dev.sqlite`. |
 
 **Nunca comitees `.env`** con valores reales — está en `.gitignore`. En el
@@ -195,6 +199,7 @@ Se invoca de dos formas (comparten la misma función):
 | `/prensa-general` | Última edición de prensa general (hoy). |
 | `/prensa-general/[fecha]` | Edición de prensa histórica. |
 | `/archivo` | Listado de todas las fechas con ediciones disponibles, con acceso directo a cada tipo. |
+| `/admin/usage?secret=...` | Panel de diagnóstico de coste/telemetría de OpenAI, protegido por `ADMIN_SECRET` (ver sección 10). No indexado (`robots.txt`), no listado en el sitemap. |
 
 Si una fecha no tiene edición guardada, la ruta responde 404 (`notFound()`).
 Si no hay **ninguna** edición de ningún tipo (caso extremo, DB vacía y sin
@@ -281,23 +286,40 @@ Europe/Madrid que actualizan la edición del día SIN regenerarla desde cero.
    los artículos cuya URL ya apareciera como fuente en la edición anterior
    (`detectNewItems`). Si no hay ninguno nuevo, tampoco se llama a la IA ni
    se crea una fila nueva — la revisión queda marcada `skipped` en el log.
-3. Si hay artículos nuevos, se le pide a la IA que **clasifique cada uno**
-   (`new_item` / `update_existing` / `no_change`) y redacte solo el
-   contenido de los puntos nuevos o actualizados, además de revisar
-   `executiveSummary` y `watchToday` completos. La IA NUNCA reescribe el
-   resto del documento (secciones sin cambios, newspapers/outlets,
-   comparison, recommendedArticles se copian tal cual de la edición
-   anterior) — esto es determinista, en código (`applySectionChanges`), no
-   una regeneración por IA.
-4. Los puntos afectados quedan marcados con `revisionTag: "new"` o
-   `"updated"` (se renderizan como badges "Nuevo"/"Actualizado" en la UI).
-   El resultado se guarda como una fila nueva y append-only
-   (`update-1`, `update-2`...), igual que "Actualizar ahora" — nunca se
-   sobrescribe ni se pierde la revisión anterior.
-5. La portada y las páginas `/financiero` y `/prensa-general` siempre leen
+3. Antes de llamar a la IA, se filtran también los artículos cuyo hash
+   (outlet+título+URL) ya conste en `processed_articles` para ese tipo+fecha
+   (`lib/dedup.ts`, `filterUnprocessed`) — deduplicación persistente,
+   complementaria a `detectNewItems`: sobrevive aunque un artículo nunca
+   llegara a citarse como fuente (ej. se descartó como `discarded` en una
+   revisión previa), evitando reprocesarlo eternamente.
+4. Con los artículos realmente nuevos, se le pide al modelo **FAST** (ver
+   sección de modelos más abajo) que **clasifique cada uno** en uno de 5
+   estados y redacte solo el contenido de los puntos afectados, además de
+   revisar `executiveSummary` y `watchToday` completos:
+   - `new_item` (NEW): noticia realmente nueva y relevante.
+   - `update_existing` (UPDATED): amplía un punto ya publicado sin contradecirlo.
+   - `correction` (CORRECTION): CORRIGE o invalida información ya publicada
+     (el hecho no era como se dijo, cambió el desenlace...) — se distingue
+     de `update_existing` porque el lector debe saber que lo anterior
+     estaba mal, no solo incompleto.
+   - `no_change` (UNCHANGED): no aporta nada que cambie el briefing.
+   - `discarded` (DISCARDED): ruido/irrelevante, ni siquiera se considera.
+
+   La IA NUNCA reescribe el resto del documento (secciones sin cambios,
+   newspapers/outlets, comparison, recommendedArticles se copian tal cual
+   de la edición anterior) — el merge es determinista, en código
+   (`applySectionChanges`), no una regeneración por IA.
+5. Los puntos afectados quedan marcados con `revisionTag: "new"`,
+   `"updated"` o `"correction"` (badges "Nuevo"/"Actualizado"/"Corregido" en
+   la UI, este último en el color de alerta de la marca). El resultado se
+   guarda como una fila nueva y append-only (`update-1`, `update-2`...),
+   igual que "Actualizar ahora" — nunca se sobrescribe ni se pierde la
+   revisión anterior.
+6. La portada y las páginas `/financiero` y `/prensa-general` siempre leen
    `getLatestEdition()`, así que automáticamente muestran la revisión más
    reciente; el histórico (`/archivo` → `listEditionMeta`) sigue permitiendo
-   consultar todas las revisiones del mismo día.
+   consultar todas las revisiones del mismo día (edición inicial 10:00,
+   revisión 14:00, cierre 19:00).
 
 **Independiente por tipo**: si la revisión del general falla, la del
 financiero sigue su curso (y viceversa) — mismo patrón que la generación
@@ -353,6 +375,43 @@ Cron recomendado:
 Usa `sqlite3 "$DB" ".backup '...'"` (backup online, seguro con la BD en uso),
 no una copia de fichero en caliente. Conserva los últimos 30 días.
 
+### Prueba manual ANTES de activar los cron
+
+**Ningún cron (generación diaria, revisión intradía) está instalado en el
+crontab de producción por defecto** — se documentan aquí como referencia,
+pero activarlos es una acción manual y deliberada del usuario (editar el
+crontab del VPS), nunca algo que se haga solo. El orden recomendado antes
+de esa primera activación:
+
+```bash
+# 1. Test de fuentes: comprueba que los RSS responden, SIN gastar tokens de OpenAI.
+npm run test:sources
+
+# 2. Generación manual de la edición completa (10:00).
+npm run generate:daily
+# o, ya desplegado en el VPS, por HTTP:
+curl -X POST -H "x-cron-secret: $CRON_SECRET" https://news.matizal.com/api/cron/daily
+
+# 3. Revisar el resultado: la web (/, /financiero, /prensa-general), el
+#    almacenamiento (SQLite: tabla editions) y el consumo de OpenAI:
+#    https://news.matizal.com/admin/usage?secret=...
+
+# 4. Revisión intradía manual (requiere que el paso 2 ya haya creado una
+#    edición hoy — si no la hay, esto falla con un mensaje claro, no genera
+#    nada desde cero).
+npm run generate:intraday
+
+# 5. Limpieza mensual manual (solo actúa si hoy es día 5 en Europe/Madrid;
+#    cualquier otro día es un no-op seguro).
+npm run cleanup
+```
+
+Solo tras revisar el resultado de estos pasos (contenido, coste en
+`/admin/usage`, ausencia de errores) tiene sentido instalar los cron reales
+en el crontab del VPS (ver sección 13.8 más abajo). No hay recuperación
+automática de una ejecución que "debería haber pasado": si el cron de las
+10:00 no corrió (o corrió y falló), no se dispara solo — se lanza a mano.
+
 ---
 
 ## 8. Generación con IA — cambiar de proveedor
@@ -367,8 +426,10 @@ import { generateGeneralBriefing, generateFinancialBriefing } from "@/lib/ai";
 Para añadir un proveedor nuevo:
 
 1. Crea `lib/ai/mi-proveedor-provider.ts` implementando la interfaz
-   `AiProvider` (`lib/ai/provider.ts`): un único método
-   `generateJson({ systemPrompt, userPrompt, maxOutputTokens }) => Promise<string>`.
+   `AiProvider` (`lib/ai/provider.ts`): un único método `generateJson(...)`
+   que reciba `taskKind` ("fast" | "editorial", ver sección 9) y devuelva
+   `{ content, usage }` — `usage` (modelo real usado, tokens de entrada/
+   cacheados/salida, duración) alimenta la telemetría de coste.
 2. Regístralo en el `switch` de `getProvider()` en `lib/ai/index.ts`.
 3. Cambia `AI_PROVIDER=mi-proveedor` en `.env`.
 
@@ -381,7 +442,81 @@ agnósticos del proveedor.
 
 ---
 
-## 9. Fuentes RSS
+## 9. Estrategia de modelos (FAST / EDITORIAL)
+
+Configuración CENTRALIZADA en `lib/ai/model-config.ts` — ningún otro módulo
+debe escribir un nombre de modelo a mano. Dos roles, elegidos por tarea:
+
+| Rol | Variable | Para qué | Usado en |
+|---|---|---|---|
+| **FAST** | `OPENAI_MODEL_FAST` | Clasificación, detección de novedades, deduplicación semántica — tareas mecánicas | `runIntradayRevision` (clasifica cada artículo nuevo en NEW/UPDATED/CORRECTION/UNCHANGED/DISCARDED) |
+| **EDITORIAL** | `OPENAI_MODEL_EDITORIAL` | Resumen ejecutivo, síntesis, comparación editorial, redacción del briefing completo | `generateGeneralBriefing` / `generateFinancialBriefing` (edición de las 10:00) |
+
+Ambas variables por defecto valen `gpt-4o-mini` — deliberado, no un
+descuido: ya sostiene la calidad editorial del proyecto con coste bajo
+(ver sección 13 del brief original: objetivo orientativo ≤20€/mes). Sube
+`OPENAI_MODEL_EDITORIAL` a un modelo superior solo si decides que la
+calidad lo justifica; nunca se usa el modelo más caro disponible "porque sí".
+
+Cambiar de modelo es solo tocar la variable de entorno — ningún código que
+tocar. `getModelForTask("fast" | "editorial")` es el único punto de lectura.
+
+---
+
+## 10. Coste y telemetría de OpenAI
+
+**Cada llamada real a la API** (incluidos reintentos) se registra en la
+tabla SQLite `openai_usage` (`lib/telemetry.ts`, `recordUsage`): timestamp,
+modelo, operación (`generate_briefing` / `intraday_classify`), tarea
+(fast/editorial), tokens de entrada/cacheados/salida, coste estimado en EUR
+ya calculado en el momento de guardar (para que un cambio futuro de precios
+no reescriba el histórico), duración, y éxito/error.
+
+**Precios**: centralizados en `lib/ai/model-config.ts` (`PRICING`), en EUR
+por 1M tokens, derivados de los precios públicos de OpenAI en USD (ver
+comentario en el fichero sobre el tipo de cambio aproximado usado). Son una
+ESTIMACIÓN — compara contra tu factura real de OpenAI si necesitas
+precisión de facturación exacta.
+
+**Panel de uso** (sección 11 del brief original): `/admin/usage?secret=...`
+— vista protegida (no indexada, `robots.txt` la excluye), no un endpoint
+público. Requiere `ADMIN_SECRET` configurado; sin esa variable, el panel
+rechaza cualquier acceso. Muestra: coste/llamadas/tokens/errores de hoy y
+del mes actual, desglose por tipo de briefing (general/financiero), y las
+últimas ejecuciones con su coste individual.
+
+### Protección de presupuesto
+
+`OPENAI_DAILY_BUDGET_EUR` y `OPENAI_MONTHLY_BUDGET_EUR` (opcionales, vacías
+= sin límite). `lib/budget.ts` (`checkBudget()`) se comprueba ANTES de
+iniciar cada ejecución (edición completa o revisión intradía) — nunca a
+mitad de una llamada en curso. Si el gasto acumulado (Europe/Madrid, día o
+mes en curso) ya alcanza el límite:
+
+- La ejecución se aborta SIN llamar a OpenAI (cero coste adicional).
+- Se registra en `generation_log` como fallo, con el motivo exacto.
+- La última edición válida se mantiene visible tal cual — el bloqueo de
+  presupuesto nunca afecta a la disponibilidad de contenido ya publicado.
+- `/admin/usage` muestra el aviso "Generación detenida por límite
+  presupuestario" de forma destacada.
+
+### Deduplicación / caché (control de coste)
+
+Dos capas independientes, ambas antes de gastar tokens de IA:
+
+1. `detectNewItems` (`lib/intraday.ts`) — compara artículos RSS contra las
+   URLs ya citadas como fuente en el propio documento de la edición
+   anterior. Específico de revisiones intradía.
+2. `filterUnprocessed`/`markProcessed` (`lib/dedup.ts`, tabla
+   `processed_articles`) — hash `sha256(outlet|título|url)` persistente por
+   tipo+fecha, independiente del contenido del documento. Se aplica tanto en
+   la edición inicial (evita reprocesar en un reintento tras fallo parcial)
+   como en las revisiones intradía (evita reprocesar algo ya clasificado
+   `discarded`, que nunca llegó a citarse como fuente).
+
+---
+
+## 11. Fuentes RSS
 
 Definidas en `lib/rss/sources.ts`, solo feeds públicos/oficiales conocidos.
 Nunca scraping, nunca se elude paywall, nunca se guarda texto completo — solo
@@ -398,7 +533,7 @@ de briefing.
 
 ---
 
-## 10. Cómo importar una edición antigua manualmente
+## 12. Cómo importar una edición antigua manualmente
 
 Si tienes ediciones guardadas en otro formato:
 
@@ -418,9 +553,9 @@ Si tienes ediciones guardadas en otro formato:
 
 ---
 
-## 11. Despliegue en VPS
+## 13. Despliegue en VPS
 
-### 11.1. Instalación inicial (una vez)
+### 13.1. Instalación inicial (una vez)
 
 ```bash
 ssh <usuario>@91.134.43.229
@@ -440,7 +575,7 @@ Esto crea (con permisos adecuados):
 Crea el `.env` real (permisos `600`) a partir de `.env.example`, con
 `OPENAI_API_KEY`, `CRON_SECRET` y `DATABASE_PATH=/var/lib/matizal-news/db.sqlite`.
 
-### 11.2. DNS
+### 13.2. DNS
 
 Registro **CNAME... no**: a diferencia de Vercel, en un VPS con IP fija se
 usa un registro **A**:
@@ -454,7 +589,7 @@ TTL:   automático / 3600
 
 Resultado: `news.matizal.com` → `91.134.43.229`.
 
-### 11.3. Certificado TLS (Certbot)
+### 13.3. Certificado TLS (Certbot)
 
 **Importante: no lo pidas hasta que el DNS ya resuelva a esta VPS** (verifica
 con `dig news.matizal.com` o `nslookup news.matizal.com`).
@@ -466,7 +601,7 @@ sudo certbot certonly --webroot -w /var/www/news-matizal -d news.matizal.com
 (Asegúrate de que `/var/www/news-matizal` existe y que el vhost HTTP de nginx sirve
 `/.well-known/acme-challenge/` desde ahí — ver `deploy/nginx-host/news-matizal.conf`.)
 
-### 11.4. Nginx del host
+### 13.4. Nginx del host
 
 Copia `deploy/nginx-host/news-matizal.conf` a `/etc/nginx/conf.d/` (o al
 sitio equivalente según tu convención), ajusta si es necesario, y recarga:
@@ -478,7 +613,7 @@ sudo nginx -t && sudo systemctl reload nginx
 El contenedor Next.js escucha **solo en `127.0.0.1:3021`** — nginx es el
 único punto público (443/80). No expongas el puerto 3021 fuera de loopback.
 
-### 11.5. Primer despliegue
+### 13.5. Primer despliegue
 
 ```bash
 cd /path/to/news-matizal
@@ -487,7 +622,7 @@ docker compose up -d
 curl -fsS http://127.0.0.1:3021/api/health
 ```
 
-### 11.6. Despliegues posteriores
+### 13.6. Despliegues posteriores
 
 ```bash
 ./scripts/deploy.sh
@@ -504,7 +639,7 @@ git checkout <commit-anterior>
 ./scripts/deploy.sh
 ```
 
-### 11.7. GitHub Actions (opcional)
+### 13.7. GitHub Actions (opcional)
 
 `.github/workflows/deploy.yml` hace SSH al VPS en cada push a `main` y
 ejecuta `scripts/deploy.sh` remotamente. Requiere configurar en
@@ -519,32 +654,40 @@ Si no se configura, el workflow simplemente no se dispara con éxito — el
 despliegue manual (`./scripts/deploy.sh` por SSH) sigue siendo la vía
 principal y suficiente.
 
-### 11.8. Cron del sistema (generación + limpieza + backups)
+### 13.8. Cron del sistema (generación + limpieza + backups)
 
 Ver sección 7 para los ejemplos completos de crontab / systemd timer.
 
 ---
 
-## 12. Seguridad
+## 14. Seguridad
 
 - El proceso Next.js **nunca** se expone directo a internet: solo escucha en
   `127.0.0.1:3021` dentro del host; nginx es el único punto público.
-- `OPENAI_API_KEY` y `CRON_SECRET` viven solo en variables de entorno (`.env`
-  con permisos `600` en el VPS, nunca en git).
-- `/api/cron/daily`, `/api/cron/cleanup` y `/api/refresh` exigen
-  `CRON_SECRET` (header `x-cron-secret` o `?secret=`). Sin `CRON_SECRET`
-  configurado, esos endpoints rechazan **toda** petición.
+- `OPENAI_API_KEY`, `CRON_SECRET` y `ADMIN_SECRET` viven solo en variables de
+  entorno (`.env` con permisos `600` en el VPS, nunca en git).
+- `/api/cron/daily`, `/api/cron/intraday`, `/api/cron/cleanup` y
+  `/api/refresh` exigen `CRON_SECRET` (header `x-cron-secret` o `?secret=`).
+  Sin `CRON_SECRET` configurado, esos endpoints rechazan **toda** petición.
+- `/admin/usage` exige `ADMIN_SECRET` (`?secret=` en la URL); sin esa
+  variable configurada, rechaza todo acceso. No indexado (`robots.txt`
+  excluye `/admin/`), no listado en el sitemap.
 - `/api/refresh` tiene rate limiting básico (1 cada 15 min, en memoria).
+- Protección de presupuesto (`OPENAI_DAILY_BUDGET_EUR`/
+  `OPENAI_MONTHLY_BUDGET_EUR`, ver sección 10): comprobada antes de cada
+  ejecución, nunca a mitad de una llamada — si se supera, se aborta sin
+  gasto adicional y sin tocar la última edición válida.
 - Headers de seguridad (`X-Content-Type-Options`, `X-Frame-Options`,
   `Referrer-Policy`) añadidos vía `headers()` en `next.config.ts`.
-- El logging estructurado nunca imprime `OPENAI_API_KEY` ni `CRON_SECRET`.
+- El logging estructurado nunca imprime `OPENAI_API_KEY`, `CRON_SECRET` ni
+  `ADMIN_SECRET`.
 - Firewall y hardening SSH del VPS son responsabilidad del usuario a nivel de
   sistema (no gestionados por esta app): se recomienda `ufw allow 80,443,22`
   + `ufw default deny incoming`, y opcionalmente `fail2ban`.
 
 ---
 
-## 13. Troubleshooting
+## 15. Troubleshooting
 
 **La home muestra "todavía no hay ninguna edición disponible".**
 No hay filas en SQLite ni JSON demo para ningún tipo. Verifica que
@@ -585,6 +728,17 @@ También esperado: no se detectaron artículos nuevos desde la última
 revisión (`detectNewItems` no encontró ninguna URL no vista). No es un
 error — significa que de verdad no ha cambiado nada desde la última pasada.
 
+**`/admin/usage` dice "Acceso no autorizado" aunque el secreto es correcto.**
+Comprueba que `ADMIN_SECRET` está definido en el `.env` real del proceso que
+sirve la app (no solo en tu `.env` local) y que coincide EXACTAMENTE con el
+`?secret=` de la URL (sensible a mayúsculas/espacios).
+
+**Una generación falla con "Generación detenida por límite presupuestario".**
+Esperado si configuraste `OPENAI_DAILY_BUDGET_EUR`/`OPENAI_MONTHLY_BUDGET_EUR`
+y el gasto ya registrado en `/admin/usage` alcanza el límite. La última
+edición válida sigue disponible. Sube el límite o espera a que empiece el
+siguiente día/mes (Europe/Madrid) si quieres generar antes.
+
 **El modo oscuro parpadea al cargar (flash de tema incorrecto).**
 No debería ocurrir: `components/ThemeScript.tsx` inyecta un script inline en
 `<head>` que aplica `data-theme` antes del primer paint, leyendo
@@ -593,7 +747,7 @@ de `<head>` en `app/layout.tsx`.
 
 ---
 
-## 14. Identidad visual
+## 16. Identidad visual
 
 Paleta y tipografías tomadas del branding real de matizal.com, centralizadas
 como custom properties CSS en `app/globals.css` (nunca hex sueltos en
@@ -615,7 +769,7 @@ componentes):
   (`components/ThemeToggle.tsx`), sin flash de tema incorrecto
   (`components/ThemeScript.tsx`).
 
-## 15. Sistema de prioridad editorial
+## 17. Sistema de prioridad editorial
 
 Tres niveles, sobrios, usados en resúmenes ejecutivos, secciones y "qué
 vigilar hoy" (`components/PriorityBadge.tsx`):
@@ -624,7 +778,7 @@ vigilar hoy" (`components/PriorityBadge.tsx`):
 - 🟠 **Importante** — relevante, conviene seguir.
 - 🟢 **Contexto** — información para entender el escenario.
 
-## 16. Tests
+## 18. Tests
 
 ```bash
 npm test

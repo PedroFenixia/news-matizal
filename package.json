@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --import tsx --test test/**/*.test.ts",
+    "test:sources": "tsx scripts/test-sources.ts",
     "generate:daily": "tsx scripts/generate-daily.ts",
     "generate:intraday": "tsx scripts/generate-intraday.ts",
     "cleanup": "tsx scripts/cleanup.ts",

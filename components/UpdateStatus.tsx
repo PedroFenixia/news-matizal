@@ -17,12 +17,9 @@ function formatMadrid(iso: string): { date: string; time: string } {
 }
 
 function noveltyLabel(summary: RevisionSummary): string | null {
-  const total = summary.newCount + summary.updatedCount;
+  const total = summary.newCount + summary.updatedCount + summary.correctionCount;
   if (total === 0) return null;
-  const parts: string[] = [];
-  if (summary.newCount > 0) parts.push(`${summary.newCount} nueva${summary.newCount === 1 ? "" : "s"}`);
-  if (summary.updatedCount > 0) parts.push(`${summary.updatedCount} actualizada${summary.updatedCount === 1 ? "" : "s"}`);
-  return `${parts.join(", ")} desde la edición anterior`;
+  return `${total} novedad${total === 1 ? "" : "es"} desde la edición anterior`;
 }
 
 export function UpdateStatus({

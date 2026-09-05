@@ -1,25 +1,22 @@
 import OpenAI from "openai";
-import { AiProvider, AiProviderError } from "./provider";
+import { AiProvider, AiProviderError, AiGenerateResult } from "./provider";
+import { getModelForTask, type TaskKind } from "./model-config";
 
-const DEFAULT_MODEL = "gpt-4o-mini";
 const DEFAULT_TIMEOUT_MS = 60_000;
 const MAX_RETRIES = 3;
 const BASE_BACKOFF_MS = 1_000;
 
 export class OpenAiProvider implements AiProvider {
-  readonly name: string;
+  readonly name = "openai";
   private client: OpenAI;
-  private model: string;
 
-  constructor(options?: { apiKey?: string; model?: string }) {
+  constructor(options?: { apiKey?: string }) {
     const apiKey = options?.apiKey ?? process.env.OPENAI_API_KEY;
     if (!apiKey) {
       throw new AiProviderError(
         "OPENAI_API_KEY no está definida. Configúrala como variable de entorno."
       );
     }
-    this.model = options?.model ?? process.env.OPENAI_MODEL ?? DEFAULT_MODEL;
-    this.name = `openai:${this.model}`;
     this.client = new OpenAI({ apiKey, timeout: DEFAULT_TIMEOUT_MS });
   }
 
@@ -27,8 +24,10 @@ export class OpenAiProvider implements AiProvider {
     systemPrompt: string;
     userPrompt: string;
     maxOutputTokens?: number;
+    taskKind?: TaskKind;
     jsonSchema?: { name: string; schema: Record<string, unknown> };
-  }): Promise<string> {
+  }): Promise<AiGenerateResult> {
+    const model = getModelForTask(params.taskKind ?? "editorial");
     let lastError: unknown;
 
     // Con schema: "structured outputs" (json_schema + strict) fuerza al
@@ -47,9 +46,10 @@ export class OpenAiProvider implements AiProvider {
       : ({ type: "json_object" as const });
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      const startedAt = Date.now();
       try {
         const response = await this.client.chat.completions.create({
-          model: this.model,
+          model,
           messages: [
             { role: "system", content: params.systemPrompt },
             { role: "user", content: params.userPrompt },
@@ -59,6 +59,7 @@ export class OpenAiProvider implements AiProvider {
           max_tokens: params.maxOutputTokens ?? 4000,
         });
 
+        const durationMs = Date.now() - startedAt;
         const content = response.choices[0]?.message?.content;
         if (!content) {
           throw new AiProviderError(
@@ -74,16 +75,29 @@ export class OpenAiProvider implements AiProvider {
           );
         }
 
+        const usage = response.usage;
+        const cachedInputTokens = usage?.prompt_tokens_details?.cached_tokens ?? 0;
+
         console.log(
-          `[ai:openai] modelo=${this.model} intento=${attempt} tokens=${response.usage?.total_tokens ?? "?"}`
+          `[ai:openai] modelo=${model} tarea=${params.taskKind ?? "editorial"} intento=${attempt} tokens=${usage?.total_tokens ?? "?"} (cached=${cachedInputTokens}) duración=${durationMs}ms`
         );
 
-        return content;
+        return {
+          content,
+          usage: {
+            model,
+            inputTokens: usage?.prompt_tokens ?? 0,
+            cachedInputTokens,
+            outputTokens: usage?.completion_tokens ?? 0,
+            totalTokens: usage?.total_tokens ?? 0,
+            durationMs,
+          },
+        };
       } catch (err) {
         lastError = err;
         const isLastAttempt = attempt === MAX_RETRIES;
         console.warn(
-          `[ai:openai] intento ${attempt}/${MAX_RETRIES} falló: ${
+          `[ai:openai] intento ${attempt}/${MAX_RETRIES} falló (modelo=${model}): ${
             err instanceof Error ? err.message : String(err)
           }`
         );
@@ -95,7 +109,7 @@ export class OpenAiProvider implements AiProvider {
     }
 
     throw new AiProviderError(
-      `OpenAI falló tras ${MAX_RETRIES} intentos: ${
+      `OpenAI falló tras ${MAX_RETRIES} intentos (modelo=${model}): ${
         lastError instanceof Error ? lastError.message : String(lastError)
       }`,
       lastError

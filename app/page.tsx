@@ -63,6 +63,12 @@ export default function HomePage() {
           updatedCount:
             (general?.revisionSummary?.updatedCount ?? 0) +
             (financial?.revisionSummary?.updatedCount ?? 0),
+          correctionCount:
+            (general?.revisionSummary?.correctionCount ?? 0) +
+            (financial?.revisionSummary?.correctionCount ?? 0),
+          discardedCount:
+            (general?.revisionSummary?.discardedCount ?? 0) +
+            (financial?.revisionSummary?.discardedCount ?? 0),
           consideredCount:
             (general?.revisionSummary?.consideredCount ?? 0) +
             (financial?.revisionSummary?.consideredCount ?? 0),

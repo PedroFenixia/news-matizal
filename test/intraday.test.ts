@@ -151,6 +151,52 @@ test("applySectionChanges: no_change no altera nada", () => {
   assert.equal(result[0].items.length, 0);
 });
 
+test("applySectionChanges: correction reemplaza el item con revisionTag 'correction' (no 'updated')", () => {
+  const sections: BriefingSection[] = [
+    {
+      key: "B",
+      title: "Política nacional",
+      items: [
+        { id: "b-1", headline: "Se anuncia el cierre", body: "...", priority: "important", sources: [] },
+      ],
+    },
+  ];
+
+  const { sections: result, updatedCount, correctionCount } = applySectionChanges(sections, [
+    {
+      classification: "correction",
+      sectionKey: "B",
+      targetItemId: "b-1",
+      item: {
+        id: "b-1",
+        headline: "El cierre finalmente NO se produce",
+        body: "Información corregida",
+        priority: "attention",
+        nature: null,
+        sources: [],
+      },
+    },
+  ]);
+
+  assert.equal(updatedCount, 0);
+  assert.equal(correctionCount, 1);
+  assert.equal(result[0].items[0].revisionTag, "correction");
+  assert.equal(result[0].items[0].headline, "El cierre finalmente NO se produce");
+});
+
+test("applySectionChanges: discarded no altera nada, solo se cuenta", () => {
+  const sections: BriefingSection[] = [{ key: "B", title: "Política nacional", items: [] }];
+
+  const { sections: result, discardedCount, newCount } = applySectionChanges(sections, [
+    { classification: "discarded", sectionKey: null, targetItemId: null, item: null },
+    { classification: "discarded", sectionKey: null, targetItemId: null, item: null },
+  ]);
+
+  assert.equal(discardedCount, 2);
+  assert.equal(newCount, 0);
+  assert.equal(result[0].items.length, 0);
+});
+
 test("applySectionChanges: targetItemId inexistente no pierde el contenido (se trata como nuevo)", () => {
   const sections: BriefingSection[] = [
     { key: "B", title: "Política nacional", items: [] },
