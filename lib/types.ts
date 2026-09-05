@@ -96,6 +96,8 @@ export interface WatchItem {
   /** Fecha/hora prevista si se conoce (ISO 8601 o texto libre tipo "Esta tarde"). */
   when?: string;
   priority: PriorityLevel;
+  /** Fuente(s) que respaldan este evento a vigilar. */
+  sources: SourceRef[];
 }
 
 /** Punto del resumen ejecutivo. */
@@ -103,6 +105,8 @@ export interface ExecutiveSummaryItem {
   headline: string;
   detail: string;
   priority: PriorityLevel;
+  /** Fuente(s) que respaldan este punto del resumen. */
+  sources: SourceRef[];
 }
 
 /** Campos comunes a cualquier edición (general o financiera). */

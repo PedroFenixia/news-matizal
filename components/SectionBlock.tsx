@@ -1,6 +1,7 @@
 import type { BriefingSection } from "@/lib/types";
 import { PriorityBadge } from "./PriorityBadge";
 import { SourceList } from "./SourceLink";
+import { SectionHeading } from "./SectionHeading";
 
 const NATURE_LABEL: Record<string, string> = {
   fact: "Hecho",
@@ -8,18 +9,19 @@ const NATURE_LABEL: Record<string, string> = {
   opinion: "Opinión",
 };
 
-export function SectionBlock({ section }: { section: BriefingSection }) {
+export function SectionBlock({
+  section,
+  order,
+}: {
+  section: BriefingSection;
+  order: number;
+}) {
   return (
     <section id={`seccion-${section.key}`} className="scroll-mt-24 py-10 border-b border-(--border) last:border-b-0">
-      <div className="flex items-baseline gap-3 mb-6">
-        <span className="section-mark text-2xl">§ {section.key}</span>
-        <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight">
-          {section.title}
-        </h2>
-      </div>
+      <SectionHeading order={order} title={section.title} />
 
       {section.intro && (
-        <p className="text-(--ink-2) mb-6 max-w-2xl leading-relaxed">{section.intro}</p>
+        <p className="text-(--ink-2) mb-6 max-w-2xl leading-relaxed text-justify">{section.intro}</p>
       )}
 
       {section.items.length === 0 ? (
@@ -41,7 +43,7 @@ export function SectionBlock({ section }: { section: BriefingSection }) {
               <h3 className="font-serif text-xl font-medium leading-snug">
                 {item.headline}
               </h3>
-              <p className="text-(--ink-2) leading-relaxed max-w-2xl">{item.body}</p>
+              <p className="text-(--ink-2) leading-relaxed text-justify max-w-2xl">{item.body}</p>
               <SourceList sources={item.sources} />
             </article>
           ))}

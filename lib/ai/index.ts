@@ -143,6 +143,18 @@ function normalizeWatchToday(items: GeneralBriefingAiPayload["watchToday"]) {
     description: w.description,
     when: nullToUndefined(w.when),
     priority: w.priority,
+    sources: w.sources.map(normalizeSourceRef),
+  }));
+}
+
+function normalizeExecutiveSummary(
+  items: GeneralBriefingAiPayload["executiveSummary"]
+) {
+  return items.map((i) => ({
+    headline: i.headline,
+    detail: i.detail,
+    priority: i.priority,
+    sources: i.sources.map(normalizeSourceRef),
   }));
 }
 
@@ -181,7 +193,7 @@ export async function generateGeneralBriefing(
     editionId: options.editionId,
     editionSequence: options.editionSequence,
     editionLabel: options.editionLabel,
-    executiveSummary: parsed.executiveSummary,
+    executiveSummary: normalizeExecutiveSummary(parsed.executiveSummary),
     sections: normalizeSections(parsed.sections),
     newspapers: normalizeOutlets(parsed.newspapers),
     recommendedArticles: normalizeArticles(parsed.recommendedArticles),
@@ -220,7 +232,7 @@ export async function generateFinancialBriefing(
     editionId: options.editionId,
     editionSequence: options.editionSequence,
     editionLabel: options.editionLabel,
-    executiveSummary: parsed.executiveSummary,
+    executiveSummary: normalizeExecutiveSummary(parsed.executiveSummary),
     sections: normalizeSections(parsed.sections),
     outlets: normalizeOutlets(parsed.outlets),
     businessImpact: parsed.businessImpact.map((item) => ({

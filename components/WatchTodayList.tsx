@@ -1,5 +1,6 @@
 import type { WatchItem } from "@/lib/types";
 import { PriorityBadge } from "./PriorityBadge";
+import { SourceList } from "./SourceLink";
 
 export function WatchTodayList({ items }: { items: WatchItem[] }) {
   if (items.length === 0) return null;
@@ -21,7 +22,10 @@ export function WatchTodayList({ items }: { items: WatchItem[] }) {
           </div>
           <div>
             <p className="font-medium">{item.title}</p>
-            <p className="text-sm text-(--ink-2) leading-relaxed">{item.description}</p>
+            <p className="text-sm text-(--ink-2) leading-relaxed text-justify">{item.description}</p>
+            <div className="mt-2">
+              <SourceList sources={item.sources ?? []} />
+            </div>
           </div>
         </li>
       ))}

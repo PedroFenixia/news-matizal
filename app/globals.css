@@ -175,7 +175,7 @@ a {
   color: inherit;
 }
 
-/* Utilidad para el número de sección tipo "§ 01" (recurso tipográfico de marca). */
+/* Utilidad para el número de sección tipo "01" (ver components/SectionHeading.tsx). */
 .section-mark {
   font-family: var(--font-fraunces), Georgia, serif;
   font-style: italic;

@@ -69,12 +69,14 @@ const watchItemSchema = z.object({
   description: z.string().min(1),
   when: z.string().nullable(),
   priority: prioritySchema,
+  sources: z.array(sourceRefSchema),
 });
 
 const executiveSummaryItemSchema = z.object({
   headline: z.string().min(1),
   detail: z.string().min(1),
   priority: prioritySchema,
+  sources: z.array(sourceRefSchema),
 });
 
 export const generalBriefingAiSchema = z.object({

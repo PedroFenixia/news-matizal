@@ -8,14 +8,54 @@
   "isDemo": true,
   "generatedBy": "demo-fixture",
   "executiveSummary": [
-    { "headline": "Los mercados europeos abren la sesión con tono mixto tras el cierre estadounidense", "detail": "Los futuros apuntan a una apertura sin grandes movimientos, a la espera de referencias macro de la semana.", "priority": "context" },
-    { "headline": "El mercado permanece atento a las próximas decisiones de los bancos centrales", "detail": "Inversores ajustan posiciones ante la proximidad de nuevas reuniones de política monetaria en Europa y EEUU.", "priority": "important" },
-    { "headline": "La prima de riesgo española se mantiene en niveles estables", "detail": "La deuda soberana española cotiza sin sobresaltos en el arranque de septiembre.", "priority": "context" },
-    { "headline": "El precio del petróleo se mantiene dentro de rangos recientes", "detail": "El Brent cotiza sin grandes variaciones, con el mercado pendiente de la oferta de la OPEP+.", "priority": "context" },
-    { "headline": "El sector tecnológico centra la atención de los inversores en EEUU", "detail": "Las grandes tecnológicas continúan marcando el tono de Wall Street de cara al resto del trimestre.", "priority": "important" },
-    { "headline": "Las empresas españolas inician la temporada de eventos corporativos de septiembre", "detail": "Varias cotizadas del Ibex 35 tienen previstas presentaciones a inversores en las próximas semanas.", "priority": "context" },
-    { "headline": "El euro se mantiene estable frente al dólar", "detail": "El cruce eurodólar cotiza en un rango estrecho a la espera de referencias macroeconómicas.", "priority": "context" },
-    { "headline": "El mercado del gas natural europeo permanece bajo vigilancia de cara al invierno", "detail": "Los niveles de almacenamiento en Europa son un factor a seguir de cara a los próximos meses.", "priority": "important" }
+    {
+      "headline": "Los mercados europeos abren la sesión con tono mixto tras el cierre estadounidense",
+      "detail": "Los futuros apuntan a una apertura sin grandes movimientos, a la espera de referencias macro de la semana.",
+      "priority": "context",
+      "sources": []
+    },
+    {
+      "headline": "El mercado permanece atento a las próximas decisiones de los bancos centrales",
+      "detail": "Inversores ajustan posiciones ante la proximidad de nuevas reuniones de política monetaria en Europa y EEUU.",
+      "priority": "important",
+      "sources": []
+    },
+    {
+      "headline": "La prima de riesgo española se mantiene en niveles estables",
+      "detail": "La deuda soberana española cotiza sin sobresaltos en el arranque de septiembre.",
+      "priority": "context",
+      "sources": []
+    },
+    {
+      "headline": "El precio del petróleo se mantiene dentro de rangos recientes",
+      "detail": "El Brent cotiza sin grandes variaciones, con el mercado pendiente de la oferta de la OPEP+.",
+      "priority": "context",
+      "sources": []
+    },
+    {
+      "headline": "El sector tecnológico centra la atención de los inversores en EEUU",
+      "detail": "Las grandes tecnológicas continúan marcando el tono de Wall Street de cara al resto del trimestre.",
+      "priority": "important",
+      "sources": []
+    },
+    {
+      "headline": "Las empresas españolas inician la temporada de eventos corporativos de septiembre",
+      "detail": "Varias cotizadas del Ibex 35 tienen previstas presentaciones a inversores en las próximas semanas.",
+      "priority": "context",
+      "sources": []
+    },
+    {
+      "headline": "El euro se mantiene estable frente al dólar",
+      "detail": "El cruce eurodólar cotiza en un rango estrecho a la espera de referencias macroeconómicas.",
+      "priority": "context",
+      "sources": []
+    },
+    {
+      "headline": "El mercado del gas natural europeo permanece bajo vigilancia de cara al invierno",
+      "detail": "Los niveles de almacenamiento en Europa son un factor a seguir de cara a los próximos meses.",
+      "priority": "important",
+      "sources": []
+    }
   ],
   "sections": [
     {
@@ -29,7 +69,12 @@
           "priority": "context",
           "nature": "fact",
           "sources": [
-            { "outlet": "Expansión", "title": "Apertura de mercados", "publishedAt": "2026-09-04T07:00:00.000Z", "category": "Mercados" }
+            {
+              "outlet": "Expansión",
+              "title": "Apertura de mercados",
+              "publishedAt": "2026-09-04T07:00:00.000Z",
+              "category": "Mercados"
+            }
           ]
         },
         {
@@ -39,7 +84,12 @@
           "priority": "context",
           "nature": "fact",
           "sources": [
-            { "outlet": "Cinco Días", "title": "Mercado de deuda", "publishedAt": "2026-09-04T07:15:00.000Z", "category": "Renta fija" }
+            {
+              "outlet": "Cinco Días",
+              "title": "Mercado de deuda",
+              "publishedAt": "2026-09-04T07:15:00.000Z",
+              "category": "Renta fija"
+            }
           ]
         }
       ]
@@ -55,7 +105,12 @@
           "priority": "important",
           "nature": "analysis",
           "sources": [
-            { "outlet": "El Economista", "title": "Análisis de política monetaria", "publishedAt": "2026-09-04T06:50:00.000Z", "category": "Macro" }
+            {
+              "outlet": "El Economista",
+              "title": "Análisis de política monetaria",
+              "publishedAt": "2026-09-04T06:50:00.000Z",
+              "category": "Macro"
+            }
           ]
         }
       ]
@@ -71,7 +126,12 @@
           "priority": "context",
           "nature": "fact",
           "sources": [
-            { "outlet": "Expansión", "title": "Agenda corporativa", "publishedAt": "2026-09-04T07:05:00.000Z", "category": "Empresas" }
+            {
+              "outlet": "Expansión",
+              "title": "Agenda corporativa",
+              "publishedAt": "2026-09-04T07:05:00.000Z",
+              "category": "Empresas"
+            }
           ]
         }
       ]
@@ -87,7 +147,12 @@
           "priority": "important",
           "nature": "analysis",
           "sources": [
-            { "outlet": "CNBC", "title": "Tech sector outlook", "publishedAt": "2026-09-04T05:30:00.000Z", "category": "Tecnología" }
+            {
+              "outlet": "CNBC",
+              "title": "Tech sector outlook",
+              "publishedAt": "2026-09-04T05:30:00.000Z",
+              "category": "Tecnología"
+            }
           ]
         }
       ]
@@ -103,7 +168,12 @@
           "priority": "important",
           "nature": "fact",
           "sources": [
-            { "outlet": "El Economista", "title": "Mercado energético", "publishedAt": "2026-09-04T06:40:00.000Z", "category": "Energía" }
+            {
+              "outlet": "El Economista",
+              "title": "Mercado energético",
+              "publishedAt": "2026-09-04T06:40:00.000Z",
+              "category": "Energía"
+            }
           ]
         }
       ]
@@ -119,7 +189,12 @@
           "priority": "context",
           "nature": "analysis",
           "sources": [
-            { "outlet": "Bloomberg (Markets)", "title": "Global trade outlook", "publishedAt": "2026-09-04T05:00:00.000Z", "category": "Geopolítica" }
+            {
+              "outlet": "Bloomberg (Markets)",
+              "title": "Global trade outlook",
+              "publishedAt": "2026-09-04T05:00:00.000Z",
+              "category": "Geopolítica"
+            }
           ]
         }
       ]
@@ -135,7 +210,12 @@
           "priority": "context",
           "nature": "analysis",
           "sources": [
-            { "outlet": "Cinco Días", "title": "Coyuntura española", "publishedAt": "2026-09-04T07:20:00.000Z", "category": "España" }
+            {
+              "outlet": "Cinco Días",
+              "title": "Coyuntura española",
+              "publishedAt": "2026-09-04T07:20:00.000Z",
+              "category": "España"
+            }
           ]
         }
       ]
@@ -151,7 +231,12 @@
           "priority": "important",
           "nature": "analysis",
           "sources": [
-            { "outlet": "Expansión", "title": "Perspectivas del BCE", "publishedAt": "2026-09-04T07:25:00.000Z", "category": "Europa" }
+            {
+              "outlet": "Expansión",
+              "title": "Perspectivas del BCE",
+              "publishedAt": "2026-09-04T07:25:00.000Z",
+              "category": "Europa"
+            }
           ]
         }
       ]
@@ -167,7 +252,12 @@
           "priority": "important",
           "nature": "analysis",
           "sources": [
-            { "outlet": "CNBC", "title": "Fed watch", "publishedAt": "2026-09-04T05:15:00.000Z", "category": "EEUU" }
+            {
+              "outlet": "CNBC",
+              "title": "Fed watch",
+              "publishedAt": "2026-09-04T05:15:00.000Z",
+              "category": "EEUU"
+            }
           ]
         }
       ]
@@ -181,7 +271,12 @@
       "priority": "context",
       "nature": "analysis",
       "sources": [
-        { "outlet": "Expansión", "title": "Condiciones de financiación empresarial", "publishedAt": "2026-09-04T07:30:00.000Z", "category": "Impacto empresarial" }
+        {
+          "outlet": "Expansión",
+          "title": "Condiciones de financiación empresarial",
+          "publishedAt": "2026-09-04T07:30:00.000Z",
+          "category": "Impacto empresarial"
+        }
       ]
     },
     {
@@ -191,16 +286,60 @@
       "priority": "important",
       "nature": "analysis",
       "sources": [
-        { "outlet": "El Economista", "title": "Impacto energético en la industria", "publishedAt": "2026-09-04T07:35:00.000Z", "category": "Impacto empresarial" }
+        {
+          "outlet": "El Economista",
+          "title": "Impacto energético en la industria",
+          "publishedAt": "2026-09-04T07:35:00.000Z",
+          "category": "Impacto empresarial"
+        }
       ]
     }
   ],
   "outlets": [
-    { "outlet": "Expansión", "summary": "Centra su portada en la apertura de mercados y la agenda corporativa de septiembre.", "editorialStance": "Enfoque de mercado, orientado al inversor español.", "mainStories": ["Apertura de mercados", "Agenda corporativa del Ibex 35"] },
-    { "outlet": "Cinco Días", "summary": "Prioriza la coyuntura macroeconómica española y el mercado de deuda.", "editorialStance": "Análisis económico con foco en España.", "mainStories": ["Mercado de deuda", "Coyuntura española"] },
-    { "outlet": "El Economista", "summary": "Pone el acento en política monetaria y mercado energético.", "editorialStance": "Enfoque analítico sobre macro y energía.", "mainStories": ["Política monetaria", "Mercado energético"] },
-    { "outlet": "CNBC", "summary": "Foco en tecnología y en la Reserva Federal como referencias para Wall Street.", "editorialStance": "Cobertura orientada al mercado estadounidense.", "mainStories": ["Sector tecnológico", "Fed watch"] },
-    { "outlet": "Bloomberg (Markets)", "summary": "Prioriza la perspectiva de comercio internacional y su impacto en mercados globales.", "editorialStance": "Cobertura global de mercados.", "mainStories": ["Relaciones comerciales internacionales"] }
+    {
+      "outlet": "Expansión",
+      "summary": "Centra su portada en la apertura de mercados y la agenda corporativa de septiembre.",
+      "editorialStance": "Enfoque de mercado, orientado al inversor español.",
+      "mainStories": [
+        "Apertura de mercados",
+        "Agenda corporativa del Ibex 35"
+      ]
+    },
+    {
+      "outlet": "Cinco Días",
+      "summary": "Prioriza la coyuntura macroeconómica española y el mercado de deuda.",
+      "editorialStance": "Análisis económico con foco en España.",
+      "mainStories": [
+        "Mercado de deuda",
+        "Coyuntura española"
+      ]
+    },
+    {
+      "outlet": "El Economista",
+      "summary": "Pone el acento en política monetaria y mercado energético.",
+      "editorialStance": "Enfoque analítico sobre macro y energía.",
+      "mainStories": [
+        "Política monetaria",
+        "Mercado energético"
+      ]
+    },
+    {
+      "outlet": "CNBC",
+      "summary": "Foco en tecnología y en la Reserva Federal como referencias para Wall Street.",
+      "editorialStance": "Cobertura orientada al mercado estadounidense.",
+      "mainStories": [
+        "Sector tecnológico",
+        "Fed watch"
+      ]
+    },
+    {
+      "outlet": "Bloomberg (Markets)",
+      "summary": "Prioriza la perspectiva de comercio internacional y su impacto en mercados globales.",
+      "editorialStance": "Cobertura global de mercados.",
+      "mainStories": [
+        "Relaciones comerciales internacionales"
+      ]
+    }
   ],
   "recommendedArticles": [
     {
@@ -209,7 +348,11 @@
       "reason": "Sintetiza bien los escenarios que maneja el consenso de analistas de cara a las próximas reuniones.",
       "summary": "El artículo repasa los distintos escenarios de política monetaria que baraja el mercado para el Banco Central Europeo en los próximos meses.",
       "nature": "analysis",
-      "source": { "outlet": "Expansión", "title": "Perspectivas del BCE", "url": "https://www.expansion.com" }
+      "source": {
+        "outlet": "Expansión",
+        "title": "Perspectivas del BCE",
+        "url": "https://www.expansion.com"
+      }
     },
     {
       "outlet": "Cinco Días",
@@ -217,7 +360,11 @@
       "reason": "Ofrece una lectura clara del estado de los principales indicadores nacionales.",
       "summary": "Un repaso a los indicadores disponibles de la economía española y su comparación con las previsiones del consenso.",
       "nature": "analysis",
-      "source": { "outlet": "Cinco Días", "title": "Coyuntura española", "url": "https://cincodias.elpais.com" }
+      "source": {
+        "outlet": "Cinco Días",
+        "title": "Coyuntura española",
+        "url": "https://cincodias.elpais.com"
+      }
     },
     {
       "outlet": "El Economista",
@@ -225,7 +372,11 @@
       "reason": "Explica de forma accesible los factores que determinarán los precios del gas en los próximos meses.",
       "summary": "El texto analiza los niveles de almacenamiento de gas en Europa y su posible impacto en precios durante el invierno.",
       "nature": "fact",
-      "source": { "outlet": "El Economista", "title": "Mercado energético", "url": "https://www.eleconomista.es" }
+      "source": {
+        "outlet": "El Economista",
+        "title": "Mercado energético",
+        "url": "https://www.eleconomista.es"
+      }
     },
     {
       "outlet": "CNBC",
@@ -233,27 +384,105 @@
       "reason": "Resume el papel de la inversión en infraestructura de IA en las valoraciones bursátiles actuales.",
       "summary": "Un análisis sobre cómo la inversión en infraestructura de inteligencia artificial continúa siendo un motor relevante para las grandes cotizadas tecnológicas.",
       "nature": "analysis",
-      "source": { "outlet": "CNBC", "title": "Tech sector outlook", "url": "https://www.cnbc.com" }
+      "source": {
+        "outlet": "CNBC",
+        "title": "Tech sector outlook",
+        "url": "https://www.cnbc.com"
+      }
     }
   ],
   "comparison": [
-    { "outlet": "Expansión", "mainFocus": "Mercados y agenda corporativa", "interpretation": "Enfoque práctico orientado al inversor español", "nature": "fact" },
-    { "outlet": "Cinco Días", "mainFocus": "Macroeconomía española", "interpretation": "Lectura analítica de la coyuntura nacional", "nature": "analysis" },
-    { "outlet": "El Economista", "mainFocus": "Política monetaria y energía", "interpretation": "Enfoque técnico sobre factores macro", "nature": "analysis" },
-    { "outlet": "CNBC", "mainFocus": "Tecnología y Reserva Federal", "interpretation": "Cobertura centrada en el mercado estadounidense", "nature": "fact" },
-    { "outlet": "Bloomberg (Markets)", "mainFocus": "Comercio internacional", "interpretation": "Perspectiva global de mercados", "nature": "analysis" }
+    {
+      "outlet": "Expansión",
+      "mainFocus": "Mercados y agenda corporativa",
+      "interpretation": "Enfoque práctico orientado al inversor español",
+      "nature": "fact"
+    },
+    {
+      "outlet": "Cinco Días",
+      "mainFocus": "Macroeconomía española",
+      "interpretation": "Lectura analítica de la coyuntura nacional",
+      "nature": "analysis"
+    },
+    {
+      "outlet": "El Economista",
+      "mainFocus": "Política monetaria y energía",
+      "interpretation": "Enfoque técnico sobre factores macro",
+      "nature": "analysis"
+    },
+    {
+      "outlet": "CNBC",
+      "mainFocus": "Tecnología y Reserva Federal",
+      "interpretation": "Cobertura centrada en el mercado estadounidense",
+      "nature": "fact"
+    },
+    {
+      "outlet": "Bloomberg (Markets)",
+      "mainFocus": "Comercio internacional",
+      "interpretation": "Perspectiva global de mercados",
+      "nature": "analysis"
+    }
   ],
   "watchToday": [
-    { "title": "Próximas decisiones de bancos centrales", "description": "Seguimiento de las señales previas a las reuniones de BCE y Fed.", "when": "Próximas semanas", "priority": "important" },
-    { "title": "Evolución de los precios del gas natural", "description": "Vigilancia de los niveles de almacenamiento europeo de cara al invierno.", "when": "Próximos meses", "priority": "important" },
-    { "title": "Agenda de presentaciones corporativas del Ibex 35", "description": "Varias cotizadas mantienen encuentros con inversores antes de resultados del tercer trimestre.", "when": "Septiembre", "priority": "context" },
-    { "title": "Evolución de la prima de riesgo española", "description": "Seguimiento de la deuda soberana española en un contexto de tipos estables.", "when": "Esta semana", "priority": "context" }
+    {
+      "title": "Próximas decisiones de bancos centrales",
+      "description": "Seguimiento de las señales previas a las reuniones de BCE y Fed.",
+      "when": "Próximas semanas",
+      "priority": "important",
+      "sources": []
+    },
+    {
+      "title": "Evolución de los precios del gas natural",
+      "description": "Vigilancia de los niveles de almacenamiento europeo de cara al invierno.",
+      "when": "Próximos meses",
+      "priority": "important",
+      "sources": []
+    },
+    {
+      "title": "Agenda de presentaciones corporativas del Ibex 35",
+      "description": "Varias cotizadas mantienen encuentros con inversores antes de resultados del tercer trimestre.",
+      "when": "Septiembre",
+      "priority": "context",
+      "sources": []
+    },
+    {
+      "title": "Evolución de la prima de riesgo española",
+      "description": "Seguimiento de la deuda soberana española en un contexto de tipos estables.",
+      "when": "Esta semana",
+      "priority": "context",
+      "sources": []
+    }
   ],
   "sources": [
-    { "outlet": "Expansión", "url": "https://www.expansion.com", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "financial" },
-    { "outlet": "Cinco Días", "url": "https://cincodias.elpais.com", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "financial" },
-    { "outlet": "El Economista", "url": "https://www.eleconomista.es", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "financial" },
-    { "outlet": "CNBC", "url": "https://www.cnbc.com", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "financial" },
-    { "outlet": "Bloomberg (Markets)", "url": "https://www.bloomberg.com", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "financial" }
+    {
+      "outlet": "Expansión",
+      "url": "https://www.expansion.com",
+      "retrievedAt": "2026-09-04T08:00:00.000Z",
+      "category": "financial"
+    },
+    {
+      "outlet": "Cinco Días",
+      "url": "https://cincodias.elpais.com",
+      "retrievedAt": "2026-09-04T08:00:00.000Z",
+      "category": "financial"
+    },
+    {
+      "outlet": "El Economista",
+      "url": "https://www.eleconomista.es",
+      "retrievedAt": "2026-09-04T08:00:00.000Z",
+      "category": "financial"
+    },
+    {
+      "outlet": "CNBC",
+      "url": "https://www.cnbc.com",
+      "retrievedAt": "2026-09-04T08:00:00.000Z",
+      "category": "financial"
+    },
+    {
+      "outlet": "Bloomberg (Markets)",
+      "url": "https://www.bloomberg.com",
+      "retrievedAt": "2026-09-04T08:00:00.000Z",
+      "category": "financial"
+    }
   ]
 }

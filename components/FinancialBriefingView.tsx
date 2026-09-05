@@ -2,6 +2,7 @@ import type { FinancialBriefing } from "@/lib/types";
 import { BriefingHeader } from "./BriefingHeader";
 import { ExecutiveSummaryList } from "./ExecutiveSummaryList";
 import { SectionBlock } from "./SectionBlock";
+import { SectionHeading } from "./SectionHeading";
 import { OutletHighlightCard } from "./OutletHighlight";
 import { ArticleCard } from "./ArticleCard";
 import { ComparisonTable } from "./ComparisonTable";
@@ -20,6 +21,15 @@ export function FinancialBriefingView({
   isLatest: boolean;
   path: string;
 }) {
+  let order = 1;
+  const summaryOrder = order++;
+  const sectionOrders = briefing.sections.map(() => order++);
+  const businessImpactOrder = order++;
+  const outletsOrder = order++;
+  const comparisonOrder = order++;
+  const watchOrder = order++;
+  const articlesOrder = briefing.recommendedArticles.length > 0 ? order++ : null;
+
   const tocEntries: TocEntry[] = [
     { key: "A", title: "Resumen ejecutivo" },
     ...briefing.sections.map((s) => ({ key: s.key, title: s.title })),
@@ -27,7 +37,7 @@ export function FinancialBriefingView({
     { key: "L", title: "Qué destaca cada medio" },
     { key: "M", title: "Comparación editorial" },
     { key: "N", title: "Qué vigilar hoy" },
-    ...(briefing.recommendedArticles.length > 0
+    ...(articlesOrder !== null
       ? [{ key: "O", title: "Artículos recomendados" }]
       : []),
   ];
@@ -55,26 +65,16 @@ export function FinancialBriefingView({
 
         <div className="min-w-0 max-w-3xl">
           <section id="seccion-A" className="scroll-mt-24 pb-10 border-b border-(--border)">
-            <div className="flex items-baseline gap-3 mb-6">
-              <span className="section-mark text-2xl">§ A</span>
-              <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight">
-                Resumen ejecutivo
-              </h2>
-            </div>
+            <SectionHeading order={summaryOrder} title="Resumen ejecutivo" />
             <ExecutiveSummaryList items={briefing.executiveSummary} />
           </section>
 
-          {briefing.sections.map((section) => (
-            <SectionBlock key={section.key} section={section} />
+          {briefing.sections.map((section, idx) => (
+            <SectionBlock key={section.key} section={section} order={sectionOrders[idx]} />
           ))}
 
           <section id="seccion-K" className="scroll-mt-24 py-10 border-b border-(--border)">
-            <div className="flex items-baseline gap-3 mb-6">
-              <span className="section-mark text-2xl">§ K</span>
-              <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight">
-                Impacto empresarial
-              </h2>
-            </div>
+            <SectionHeading order={businessImpactOrder} title="Impacto empresarial" />
             {briefing.businessImpact.length === 0 ? (
               <p className="text-(--muted) text-sm italic">Sin material suficiente hoy.</p>
             ) : (
@@ -85,7 +85,7 @@ export function FinancialBriefingView({
                     <h3 className="font-serif text-xl font-medium leading-snug">
                       {item.headline}
                     </h3>
-                    <p className="text-(--ink-2) leading-relaxed max-w-2xl">{item.body}</p>
+                    <p className="text-(--ink-2) leading-relaxed text-justify max-w-2xl">{item.body}</p>
                     <SourceList sources={item.sources} />
                   </article>
                 ))}
@@ -94,50 +94,38 @@ export function FinancialBriefingView({
           </section>
 
           <section id="seccion-L" className="scroll-mt-24 py-10 border-b border-(--border)">
-            <div className="flex items-baseline gap-3 mb-6">
-              <span className="section-mark text-2xl">§ L</span>
-              <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight">
-                Qué destaca cada medio
-              </h2>
-            </div>
+            <SectionHeading order={outletsOrder} title="Qué destaca cada medio" />
             <div className="grid sm:grid-cols-2 gap-4">
-              {briefing.outlets.map((o) => (
-                <OutletHighlightCard key={o.outlet} highlight={o} />
+              {briefing.outlets.map((o, idx, arr) => (
+                <OutletHighlightCard
+                  key={o.outlet}
+                  highlight={o}
+                  className={idx === arr.length - 1 && arr.length % 2 === 1 ? "sm:col-span-2" : ""}
+                />
               ))}
             </div>
           </section>
 
           <section id="seccion-M" className="scroll-mt-24 py-10 border-b border-(--border)">
-            <div className="flex items-baseline gap-3 mb-6">
-              <span className="section-mark text-2xl">§ M</span>
-              <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight">
-                Comparación editorial
-              </h2>
-            </div>
+            <SectionHeading order={comparisonOrder} title="Comparación editorial" />
             <ComparisonTable rows={briefing.comparison} />
           </section>
 
           <section id="seccion-N" className="scroll-mt-24 py-10 border-b border-(--border)">
-            <div className="flex items-baseline gap-3 mb-6">
-              <span className="section-mark text-2xl">§ N</span>
-              <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight">
-                Qué vigilar hoy
-              </h2>
-            </div>
+            <SectionHeading order={watchOrder} title="Qué vigilar hoy" />
             <WatchTodayList items={briefing.watchToday} />
           </section>
 
-          {briefing.recommendedArticles.length > 0 && (
+          {articlesOrder !== null && (
             <section id="seccion-O" className="scroll-mt-24 py-10">
-              <div className="flex items-baseline gap-3 mb-6">
-                <span className="section-mark text-2xl">§ O</span>
-                <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight">
-                  Artículos recomendados
-                </h2>
-              </div>
+              <SectionHeading order={articlesOrder} title="Artículos recomendados" />
               <div className="grid sm:grid-cols-2 gap-4">
-                {briefing.recommendedArticles.map((a, idx) => (
-                  <ArticleCard key={idx} article={a} />
+                {briefing.recommendedArticles.map((a, idx, arr) => (
+                  <ArticleCard
+                    key={idx}
+                    article={a}
+                    className={idx === arr.length - 1 && arr.length % 2 === 1 ? "sm:col-span-2" : ""}
+                  />
                 ))}
               </div>
             </section>

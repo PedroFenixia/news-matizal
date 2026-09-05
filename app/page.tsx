@@ -94,7 +94,7 @@ export default function HomePage() {
           {greeting()}
         </h1>
         <p className="text-(--muted) capitalize mb-5">{today}</p>
-        <p className="text-(--ink-2) leading-relaxed max-w-xl mb-6">
+        <p className="text-(--ink-2) leading-relaxed text-justify max-w-xl mb-6">
           Resumen del día combinando prensa española y mercados financieros,
           contrastado entre cabeceras y medios de referencia.
         </p>
@@ -128,7 +128,7 @@ export default function HomePage() {
                   <PriorityBadge level={item.priority} />
                 </div>
                 <p className="font-serif text-lg font-medium leading-snug">{item.headline}</p>
-                <p className="text-sm text-(--ink-2) leading-relaxed mt-1">{item.detail}</p>
+                <p className="text-sm text-(--ink-2) leading-relaxed text-justify mt-1">{item.detail}</p>
               </div>
             </li>
           ))}
@@ -176,7 +176,7 @@ export default function HomePage() {
               <li key={idx} className="flex flex-col gap-1">
                 <PriorityBadge level="attention" />
                 <p className="font-medium">{a.headline}</p>
-                <p className="text-sm text-(--ink-2)">{a.detail}</p>
+                <p className="text-sm text-(--ink-2) text-justify">{a.detail}</p>
               </li>
             ))}
           </ul>
@@ -195,7 +195,7 @@ export default function HomePage() {
                 <PriorityBadge level={item.priority} />
               </div>
               <p className="font-medium">{item.title}</p>
-              <p className="text-sm text-(--ink-2)">{item.description}</p>
+              <p className="text-sm text-(--ink-2) text-justify">{item.description}</p>
             </li>
           ))}
         </ul>
@@ -208,8 +208,12 @@ export default function HomePage() {
             Lecturas recomendadas
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
-            {combinedRecommended.map((a, idx) => (
-              <ArticleCard key={idx} article={a} />
+            {combinedRecommended.map((a, idx, arr) => (
+              <ArticleCard
+                key={idx}
+                article={a}
+                className={idx === arr.length - 1 && arr.length % 2 === 1 ? "sm:col-span-2" : ""}
+              />
             ))}
           </div>
         </section>

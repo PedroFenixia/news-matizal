@@ -1,10 +1,16 @@
 import type { OutletHighlight } from "@/lib/types";
 
-export function OutletHighlightCard({ highlight }: { highlight: OutletHighlight }) {
+export function OutletHighlightCard({
+  highlight,
+  className = "",
+}: {
+  highlight: OutletHighlight;
+  className?: string;
+}) {
   return (
-    <div className="border border-(--border) p-5 flex flex-col gap-3">
+    <div className={`border border-(--border) p-5 flex flex-col gap-3 ${className}`}>
       <h3 className="font-serif text-lg font-semibold">{highlight.outlet}</h3>
-      <p className="text-sm text-(--ink-2) leading-relaxed">{highlight.summary}</p>
+      <p className="text-sm text-(--ink-2) leading-relaxed text-justify">{highlight.summary}</p>
       {highlight.editorialStance && (
         <p className="text-xs text-(--muted) italic">{highlight.editorialStance}</p>
       )}

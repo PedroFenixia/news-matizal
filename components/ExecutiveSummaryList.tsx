@@ -1,5 +1,6 @@
 import type { ExecutiveSummaryItem } from "@/lib/types";
 import { PriorityBadge } from "./PriorityBadge";
+import { SourceList } from "./SourceLink";
 
 export function ExecutiveSummaryList({ items }: { items: ExecutiveSummaryItem[] }) {
   return (
@@ -18,7 +19,10 @@ export function ExecutiveSummaryList({ items }: { items: ExecutiveSummaryItem[] 
               <PriorityBadge level={item.priority} />
             </div>
             <p className="font-serif text-lg font-medium leading-snug">{item.headline}</p>
-            <p className="text-sm text-(--ink-2) leading-relaxed mt-1">{item.detail}</p>
+            <p className="text-sm text-(--ink-2) leading-relaxed text-justify mt-1">{item.detail}</p>
+            <div className="mt-2">
+              <SourceList sources={item.sources ?? []} />
+            </div>
           </div>
         </li>
       ))}

@@ -11,27 +11,32 @@
     {
       "headline": "Arranca el curso político con la agenda parlamentaria como principal foco",
       "detail": "El Congreso retoma la actividad tras el parón estival con varios proyectos de ley pendientes de tramitación y la negociación presupuestaria como telón de fondo.",
-      "priority": "important"
+      "priority": "important",
+      "sources": []
     },
     {
       "headline": "Los cuatro principales diarios coinciden en situar la vuelta al cole como tema destacado",
       "detail": "El inicio del curso escolar centra portadas junto a reportajes sobre precios de material y libros de texto.",
-      "priority": "context"
+      "priority": "context",
+      "sources": []
     },
     {
       "headline": "Previsión de altas temperaturas en el sur peninsular durante los próximos días",
       "detail": "La Aemet mantiene avisos por calor en varias comunidades, con especial atención a Andalucía y Extremadura.",
-      "priority": "important"
+      "priority": "important",
+      "sources": []
     },
     {
       "headline": "Movimientos en el panorama internacional relacionados con la agenda diplomática europea",
       "detail": "Bruselas retoma reuniones de alto nivel esta semana; varios diarios adelantan agenda de la próxima cumbre europea.",
-      "priority": "context"
+      "priority": "context",
+      "sources": []
     },
     {
       "headline": "Sanidad y comunidades autónomas preparan la campaña de vacunación de otoño",
       "detail": "Se espera el calendario oficial de vacunación frente a gripe y covid en las próximas semanas.",
-      "priority": "context"
+      "priority": "context",
+      "sources": []
     }
   ],
   "sections": [
@@ -47,8 +52,18 @@
           "priority": "important",
           "nature": "fact",
           "sources": [
-            { "outlet": "El País", "title": "Portada — sección Política", "publishedAt": "2026-09-04T06:30:00.000Z", "category": "Política" },
-            { "outlet": "El Mundo", "title": "Portada — sección España", "publishedAt": "2026-09-04T06:45:00.000Z", "category": "Política" }
+            {
+              "outlet": "El País",
+              "title": "Portada — sección Política",
+              "publishedAt": "2026-09-04T06:30:00.000Z",
+              "category": "Política"
+            },
+            {
+              "outlet": "El Mundo",
+              "title": "Portada — sección España",
+              "publishedAt": "2026-09-04T06:45:00.000Z",
+              "category": "Política"
+            }
           ]
         },
         {
@@ -58,7 +73,12 @@
           "priority": "context",
           "nature": "analysis",
           "sources": [
-            { "outlet": "ABC", "title": "Análisis — arranque de curso político", "publishedAt": "2026-09-04T07:00:00.000Z", "category": "Política" }
+            {
+              "outlet": "ABC",
+              "title": "Análisis — arranque de curso político",
+              "publishedAt": "2026-09-04T07:00:00.000Z",
+              "category": "Política"
+            }
           ]
         }
       ]
@@ -74,7 +94,12 @@
           "priority": "context",
           "nature": "fact",
           "sources": [
-            { "outlet": "La Razón", "title": "Reportaje — vuelta al cole", "publishedAt": "2026-09-04T05:50:00.000Z", "category": "Sociedad" }
+            {
+              "outlet": "La Razón",
+              "title": "Reportaje — vuelta al cole",
+              "publishedAt": "2026-09-04T05:50:00.000Z",
+              "category": "Sociedad"
+            }
           ]
         },
         {
@@ -84,8 +109,18 @@
           "priority": "important",
           "nature": "fact",
           "sources": [
-            { "outlet": "El País", "title": "Portada — Sociedad", "publishedAt": "2026-09-04T06:10:00.000Z", "category": "Sociedad" },
-            { "outlet": "ABC", "title": "Portada — España", "publishedAt": "2026-09-04T06:20:00.000Z", "category": "Sociedad" }
+            {
+              "outlet": "El País",
+              "title": "Portada — Sociedad",
+              "publishedAt": "2026-09-04T06:10:00.000Z",
+              "category": "Sociedad"
+            },
+            {
+              "outlet": "ABC",
+              "title": "Portada — España",
+              "publishedAt": "2026-09-04T06:20:00.000Z",
+              "category": "Sociedad"
+            }
           ]
         }
       ]
@@ -101,7 +136,12 @@
           "priority": "context",
           "nature": "fact",
           "sources": [
-            { "outlet": "El Mundo", "title": "Portada — Internacional", "publishedAt": "2026-09-04T06:40:00.000Z", "category": "Internacional" }
+            {
+              "outlet": "El Mundo",
+              "title": "Portada — Internacional",
+              "publishedAt": "2026-09-04T06:40:00.000Z",
+              "category": "Internacional"
+            }
           ]
         }
       ]
@@ -117,7 +157,12 @@
           "priority": "important",
           "nature": "analysis",
           "sources": [
-            { "outlet": "La Razón", "title": "Análisis — calendario presupuestario", "publishedAt": "2026-09-04T07:10:00.000Z", "category": "Economía" }
+            {
+              "outlet": "La Razón",
+              "title": "Análisis — calendario presupuestario",
+              "publishedAt": "2026-09-04T07:10:00.000Z",
+              "category": "Economía"
+            }
           ]
         }
       ]
@@ -133,7 +178,12 @@
           "priority": "context",
           "nature": "fact",
           "sources": [
-            { "outlet": "ABC", "title": "Portada — Sociedad", "publishedAt": "2026-09-04T06:55:00.000Z", "category": "Sanidad" }
+            {
+              "outlet": "ABC",
+              "title": "Portada — Sociedad",
+              "publishedAt": "2026-09-04T06:55:00.000Z",
+              "category": "Sanidad"
+            }
           ]
         }
       ]
@@ -185,7 +235,11 @@
       "reason": "Ofrece una lectura de conjunto de las prioridades legislativas de cada grupo parlamentario para el otoño.",
       "summary": "El artículo repasa, formación por formación, las prioridades anunciadas de cara a la negociación presupuestaria y el calendario legislativo del próximo trimestre.",
       "nature": "analysis",
-      "source": { "outlet": "El País", "title": "Análisis — arranque de curso político", "url": "https://elpais.com" }
+      "source": {
+        "outlet": "El País",
+        "title": "Análisis — arranque de curso político",
+        "url": "https://elpais.com"
+      }
     },
     {
       "outlet": "El Mundo",
@@ -193,7 +247,11 @@
       "reason": "Contextualiza las reuniones institucionales previstas y su relevancia para España.",
       "summary": "Un repaso a las citas europeas de la semana y a los asuntos que previsiblemente marcarán la agenda comunitaria en el corto plazo.",
       "nature": "fact",
-      "source": { "outlet": "El Mundo", "title": "Portada — Internacional", "url": "https://www.elmundo.es" }
+      "source": {
+        "outlet": "El Mundo",
+        "title": "Portada — Internacional",
+        "url": "https://www.elmundo.es"
+      }
     },
     {
       "outlet": "ABC",
@@ -201,7 +259,11 @@
       "reason": "Resume de forma clara qué grupos de población serán prioritarios y las fechas previstas.",
       "summary": "El texto detalla las previsiones sanitarias de cara a la campaña de vacunación de otoño frente a gripe y covid-19.",
       "nature": "fact",
-      "source": { "outlet": "ABC", "title": "Portada — Sociedad", "url": "https://www.abc.es" }
+      "source": {
+        "outlet": "ABC",
+        "title": "Portada — Sociedad",
+        "url": "https://www.abc.es"
+      }
     },
     {
       "outlet": "La Razón",
@@ -209,24 +271,86 @@
       "reason": "Aporta datos comparativos del gasto medio por familia y su evolución interanual.",
       "summary": "Un análisis del coste medio de la vuelta al cole por comunidad autónoma, con comparativa respecto al año anterior.",
       "nature": "fact",
-      "source": { "outlet": "La Razón", "title": "Reportaje — vuelta al cole", "url": "https://www.larazon.es" }
+      "source": {
+        "outlet": "La Razón",
+        "title": "Reportaje — vuelta al cole",
+        "url": "https://www.larazon.es"
+      }
     }
   ],
   "comparison": [
-    { "outlet": "El País", "mainFocus": "Agenda parlamentaria y curso político", "interpretation": "Lectura institucional, centrada en el calendario legislativo", "nature": "analysis" },
-    { "outlet": "El Mundo", "mainFocus": "Política nacional e internacional", "interpretation": "Tono crítico con el ritmo de la negociación presupuestaria", "nature": "opinion" },
-    { "outlet": "ABC", "mainFocus": "Sociedad y sanidad", "interpretation": "Enfoque en el posicionamiento de partidos con perspectiva conservadora", "nature": "analysis" },
-    { "outlet": "La Razón", "mainFocus": "Impacto económico en los hogares", "interpretation": "Enfoque práctico sobre gasto familiar y presupuestos", "nature": "fact" }
+    {
+      "outlet": "El País",
+      "mainFocus": "Agenda parlamentaria y curso político",
+      "interpretation": "Lectura institucional, centrada en el calendario legislativo",
+      "nature": "analysis"
+    },
+    {
+      "outlet": "El Mundo",
+      "mainFocus": "Política nacional e internacional",
+      "interpretation": "Tono crítico con el ritmo de la negociación presupuestaria",
+      "nature": "opinion"
+    },
+    {
+      "outlet": "ABC",
+      "mainFocus": "Sociedad y sanidad",
+      "interpretation": "Enfoque en el posicionamiento de partidos con perspectiva conservadora",
+      "nature": "analysis"
+    },
+    {
+      "outlet": "La Razón",
+      "mainFocus": "Impacto económico en los hogares",
+      "interpretation": "Enfoque práctico sobre gasto familiar y presupuestos",
+      "nature": "fact"
+    }
   ],
   "watchToday": [
-    { "title": "Reapertura de la actividad parlamentaria", "description": "Primeras sesiones tras el receso estival, con la negociación presupuestaria de fondo.", "when": "Esta semana", "priority": "important" },
-    { "title": "Avisos meteorológicos por calor", "description": "Seguimiento de los avisos de la Aemet en el sur peninsular.", "when": "Próximos días", "priority": "context" },
-    { "title": "Calendario oficial de vacunación de otoño", "description": "Se espera la confirmación de fechas por parte de Sanidad.", "when": "Próximas semanas", "priority": "context" }
+    {
+      "title": "Reapertura de la actividad parlamentaria",
+      "description": "Primeras sesiones tras el receso estival, con la negociación presupuestaria de fondo.",
+      "when": "Esta semana",
+      "priority": "important",
+      "sources": []
+    },
+    {
+      "title": "Avisos meteorológicos por calor",
+      "description": "Seguimiento de los avisos de la Aemet en el sur peninsular.",
+      "when": "Próximos días",
+      "priority": "context",
+      "sources": []
+    },
+    {
+      "title": "Calendario oficial de vacunación de otoño",
+      "description": "Se espera la confirmación de fechas por parte de Sanidad.",
+      "when": "Próximas semanas",
+      "priority": "context",
+      "sources": []
+    }
   ],
   "sources": [
-    { "outlet": "El País", "url": "https://elpais.com", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "general" },
-    { "outlet": "El Mundo", "url": "https://www.elmundo.es", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "general" },
-    { "outlet": "ABC", "url": "https://www.abc.es", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "general" },
-    { "outlet": "La Razón", "url": "https://www.larazon.es", "retrievedAt": "2026-09-04T08:00:00.000Z", "category": "general" }
+    {
+      "outlet": "El País",
+      "url": "https://elpais.com",
+      "retrievedAt": "2026-09-04T08:00:00.000Z",
+      "category": "general"
+    },
+    {
+      "outlet": "El Mundo",
+      "url": "https://www.elmundo.es",
+      "retrievedAt": "2026-09-04T08:00:00.000Z",
+      "category": "general"
+    },
+    {
+      "outlet": "ABC",
+      "url": "https://www.abc.es",
+      "retrievedAt": "2026-09-04T08:00:00.000Z",
+      "category": "general"
+    },
+    {
+      "outlet": "La Razón",
+      "url": "https://www.larazon.es",
+      "retrievedAt": "2026-09-04T08:00:00.000Z",
+      "category": "general"
+    }
   ]
 }

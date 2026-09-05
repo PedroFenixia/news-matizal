@@ -70,7 +70,7 @@ export function TableOfContents({ entries }: { entries: TocEntry[] }) {
 
   const list = (
     <ol className="flex flex-col gap-0.5">
-      {entries.map((entry) => (
+      {entries.map((entry, idx) => (
         <li key={entry.key}>
           <a
             href={`#seccion-${entry.key}`}
@@ -80,7 +80,9 @@ export function TableOfContents({ entries }: { entries: TocEntry[] }) {
                 : "text-(--ink-2) hover:text-(--foreground)"
             }`}
           >
-            <span className="section-mark text-xs shrink-0">§ {entry.key}</span>
+            <span className="section-mark text-xs shrink-0">
+              {String(idx + 1).padStart(2, "0")}
+            </span>
             <span className="truncate">{entry.title}</span>
           </a>
         </li>

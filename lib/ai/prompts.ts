@@ -9,7 +9,7 @@ Reglas estrictas:
 - Distingue siempre HECHO (fact) de ANÁLISIS (analysis) y OPINIÓN (opinion) en el campo "nature".
 - Cada item debe llevar un id único (string corto, ej. "gen-01").
 - Asigna "priority" con criterio real: "attention" (impacto alto/inmediato, usar con moderación), "important" (relevante, conviene seguir), "context" (info de fondo). No abuses de "attention".
-- En "sources", usa SOLO los artículos que te paso a continuación como fuente (outlet, title, url, publishedAt tal cual te los doy). Si combinas varias fuentes en un mismo punto porque varios medios cubren lo mismo, inclúyelas todas.
+- En "sources" (presente en TODOS los listados: executiveSummary, items de sections, businessImpact y watchToday), usa SOLO los artículos que te paso a continuación como fuente (outlet, title, url, publishedAt tal cual te los doy). Si combinas varias fuentes en un mismo punto porque varios medios cubren lo mismo, inclúyelas todas. Nunca lo dejes vacío si el punto se basa en artículos concretos.
 - Si no tienes material suficiente para una sección, devuélvela con "items": [] o "sections" mínimas, pero no inventes noticias que no estén respaldadas por los artículos proporcionados.
 - No inventes URLs bajo ningún concepto: usa exactamente las URLs de los artículos proporcionados.
 `;
@@ -31,7 +31,7 @@ Analizas titulares y snippets de RSS de El País, El Mundo, ABC y La Razón (y o
 
 Debes devolver un JSON con esta forma exacta:
 {
-  "executiveSummary": [{ "headline": string, "detail": string, "priority": "attention"|"important"|"context" }],
+  "executiveSummary": [{ "headline": string, "detail": string, "priority": "attention"|"important"|"context", "sources": [{ "outlet": string, "title": string, "url": string, "publishedAt": string }] }],
   "sections": [
     { "key": "B", "title": "Política nacional", "items": [{ "id": string, "headline": string, "body": string, "priority": ..., "nature": "fact"|"analysis"|"opinion", "sources": [{ "outlet": string, "title": string, "url": string, "publishedAt": string }] }] },
     { "key": "C", "title": "Sociedad", "items": [...] },
@@ -42,7 +42,7 @@ Debes devolver un JSON con esta forma exacta:
   "newspapers": [{ "outlet": string, "summary": string, "editorialStance": string, "mainStories": [string] }],
   "recommendedArticles": [{ "outlet": string, "title": string, "reason": string, "summary": string, "nature": ..., "source": { "outlet": string, "title": string, "url": string } }],
   "comparison": [{ "outlet": string, "mainFocus": string, "interpretation": string, "nature": ... }],
-  "watchToday": [{ "title": string, "description": string, "when": string, "priority": ... }]
+  "watchToday": [{ "title": string, "description": string, "when": string, "priority": ..., "sources": [{ "outlet": string, "title": string, "url": string, "publishedAt": string }] }]
 }
 
 "executiveSummary" debe tener entre 5 y 10 puntos (las noticias más importantes del día y por qué importan).
@@ -69,7 +69,7 @@ Analizas titulares y snippets de RSS de medios financieros de España (Expansió
 
 Debes devolver un JSON con esta forma exacta:
 {
-  "executiveSummary": [{ "headline": string, "detail": string, "priority": ... }],
+  "executiveSummary": [{ "headline": string, "detail": string, "priority": ..., "sources": [{ "outlet": string, "title": string, "url": string, "publishedAt": string }] }],
   "sections": [
     { "key": "B", "title": "Mercados", "items": [...] },
     { "key": "C", "title": "Macroeconomía", "items": [...] },
@@ -85,7 +85,7 @@ Debes devolver un JSON con esta forma exacta:
   "businessImpact": [{ "id": string, "headline": string, "body": string, "priority": ..., "nature": ..., "sources": [...] }],
   "recommendedArticles": [{ "outlet": string, "title": string, "reason": string, "summary": string, "nature": ..., "source": {...} }],
   "comparison": [{ "outlet": string, "mainFocus": string, "interpretation": string, "nature": ... }],
-  "watchToday": [{ "title": string, "description": string, "when": string, "priority": ... }]
+  "watchToday": [{ "title": string, "description": string, "when": string, "priority": ..., "sources": [{ "outlet": string, "title": string, "url": string, "publishedAt": string }] }]
 }
 
 "executiveSummary" debe tener entre 8 y 12 puntos.
