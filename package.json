@@ -10,7 +10,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --import tsx --test test/**/*.test.ts",
     "generate:daily": "tsx scripts/generate-daily.ts",
+    "generate:intraday": "tsx scripts/generate-intraday.ts",
     "cleanup": "tsx scripts/cleanup.ts",
     "import-briefing": "tsx scripts/import-briefing.ts",
     "backup": "bash scripts/backup.sh"

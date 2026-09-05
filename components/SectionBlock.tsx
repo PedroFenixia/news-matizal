@@ -2,6 +2,7 @@ import type { BriefingSection } from "@/lib/types";
 import { PriorityBadge } from "./PriorityBadge";
 import { SourceList } from "./SourceLink";
 import { SectionHeading } from "./SectionHeading";
+import { RevisionTagBadge } from "./RevisionTagBadge";
 
 const NATURE_LABEL: Record<string, string> = {
   fact: "Hecho",
@@ -39,6 +40,7 @@ export function SectionBlock({
                     {NATURE_LABEL[item.nature]}
                   </span>
                 )}
+                <RevisionTagBadge tag={item.revisionTag} />
               </div>
               <h3 className="font-serif text-xl font-medium leading-snug">
                 {item.headline}

@@ -13,6 +13,14 @@ export type PriorityLevel = "attention" | "important" | "context";
 /** Naturaleza editorial de una pieza: hecho constatado, análisis o opinión. */
 export type EditorialNature = "fact" | "analysis" | "opinion";
 
+/**
+ * Etiqueta de una revisión intradía (ver lib/intraday.ts): marca si un punto
+ * es nuevo desde la última edición/revisión del día, o si ya existía pero se
+ * ha actualizado (nueva información, cambio de prioridad, etc.). Ausente en
+ * puntos que no cambian entre revisiones.
+ */
+export type RevisionTag = "new" | "updated";
+
 /** Una fuente/artículo original citado, nunca con contenido íntegro. */
 export interface SourceRef {
   /** Nombre del medio, ej. "El País". */
@@ -46,6 +54,8 @@ export interface BriefingItem {
   nature?: EditorialNature;
   /** Fuentes que contrastan o respaldan este punto (puede haber varias). */
   sources: SourceRef[];
+  /** Presente solo si esta revisión introdujo el punto o lo actualizó. */
+  revisionTag?: RevisionTag;
 }
 
 /** Sección temática del briefing (ej. "Política nacional", "Mercados"). */
@@ -98,6 +108,8 @@ export interface WatchItem {
   priority: PriorityLevel;
   /** Fuente(s) que respaldan este evento a vigilar. */
   sources: SourceRef[];
+  /** Presente solo si esta revisión introdujo el punto o lo actualizó. */
+  revisionTag?: RevisionTag;
 }
 
 /** Punto del resumen ejecutivo. */
@@ -107,6 +119,16 @@ export interface ExecutiveSummaryItem {
   priority: PriorityLevel;
   /** Fuente(s) que respaldan este punto del resumen. */
   sources: SourceRef[];
+  /** Presente solo si esta revisión introdujo el punto o lo actualizó. */
+  revisionTag?: RevisionTag;
+}
+
+/** Resumen de qué cambió en una revisión intradía respecto a la anterior. */
+export interface RevisionSummary {
+  newCount: number;
+  updatedCount: number;
+  /** Total de puntos considerados al contrastar (para trazabilidad/logs). */
+  consideredCount: number;
 }
 
 /** Campos comunes a cualquier edición (general o financiera). */
@@ -136,6 +158,14 @@ export interface BaseBriefing {
   isDemo?: boolean;
   /** Modelo/proveedor de IA usado para generar esta edición. */
   generatedBy?: string;
+  /**
+   * true si esta edición es una revisión intradía (14:00/19:00) que parte
+   * de la anterior y solo contrasta novedades, en vez de la edición inicial
+   * completa de las 10:00. Ver lib/intraday.ts.
+   */
+  isIntradayRevision?: boolean;
+  /** Presente solo en revisiones intradía: qué cambió respecto a la anterior. */
+  revisionSummary?: RevisionSummary;
 }
 
 /** Briefing de prensa general (secciones A-J según especificación). */
@@ -175,7 +205,7 @@ export interface GenerationLogEntry {
   id?: number;
   runId: string;
   type: BriefingType;
-  trigger: "cron" | "manual" | "cleanup";
+  trigger: "cron" | "manual" | "cleanup" | "intraday";
   startedAt: string;
   finishedAt?: string;
   success?: boolean;

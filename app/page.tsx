@@ -7,6 +7,7 @@ import { UpdateStatus } from "@/components/UpdateStatus";
 import { DemoBadge } from "@/components/DemoBadge";
 import { ShareButton } from "@/components/ShareButton";
 import { ArticleCard } from "@/components/ArticleCard";
+import { RevisionTagBadge } from "@/components/RevisionTagBadge";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +50,24 @@ export default function HomePage() {
     .filter(Boolean)
     .sort()
     .reverse()[0];
+
+  // Combina el resumen de novedades de ambos briefings (si alguno es una
+  // revisión intradía) para mostrar "X novedades desde la edición anterior"
+  // en la portada, siempre reflejando la revisión más reciente.
+  const combinedRevisionSummary =
+    general?.revisionSummary || financial?.revisionSummary
+      ? {
+          newCount:
+            (general?.revisionSummary?.newCount ?? 0) +
+            (financial?.revisionSummary?.newCount ?? 0),
+          updatedCount:
+            (general?.revisionSummary?.updatedCount ?? 0) +
+            (financial?.revisionSummary?.updatedCount ?? 0),
+          consideredCount:
+            (general?.revisionSummary?.consideredCount ?? 0) +
+            (financial?.revisionSummary?.consideredCount ?? 0),
+        }
+      : undefined;
 
   // Combina 5-8 acontecimientos principales de ambos briefings.
   const combinedHighlights = [
@@ -103,6 +122,7 @@ export default function HomePage() {
             <UpdateStatus
               updatedAt={mostRecentUpdatedAt}
               editionLabel={general?.editionLabel ?? financial?.editionLabel ?? "Edición inicial"}
+              revisionSummary={combinedRevisionSummary}
             />
           )}
           <ShareButton title="Matizal News — Portada" url={SITE_URL} />
@@ -124,8 +144,9 @@ export default function HomePage() {
                 {String(idx + 1).padStart(2, "0")}
               </span>
               <div className="flex-1">
-                <div className="mb-1.5">
+                <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
                   <PriorityBadge level={item.priority} />
+                  <RevisionTagBadge tag={item.revisionTag} />
                 </div>
                 <p className="font-serif text-lg font-medium leading-snug">{item.headline}</p>
                 <p className="text-sm text-(--ink-2) leading-relaxed text-justify mt-1">{item.detail}</p>
@@ -174,7 +195,10 @@ export default function HomePage() {
           <ul className="flex flex-col gap-4">
             {alerts.map((a, idx) => (
               <li key={idx} className="flex flex-col gap-1">
-                <PriorityBadge level="attention" />
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <PriorityBadge level="attention" />
+                  <RevisionTagBadge tag={a.revisionTag} />
+                </div>
                 <p className="font-medium">{a.headline}</p>
                 <p className="text-sm text-(--ink-2) text-justify">{a.detail}</p>
               </li>
@@ -191,8 +215,9 @@ export default function HomePage() {
         <ul className="flex flex-col">
           {watchToday.map((item, idx) => (
             <li key={idx} className="py-4 border-b border-(--border) last:border-b-0">
-              <div className="mb-1">
+              <div className="mb-1 flex flex-wrap items-center gap-2.5">
                 <PriorityBadge level={item.priority} />
+                <RevisionTagBadge tag={item.revisionTag} />
               </div>
               <p className="font-medium">{item.title}</p>
               <p className="text-sm text-(--ink-2) text-justify">{item.description}</p>

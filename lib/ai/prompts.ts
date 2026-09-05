@@ -1,4 +1,9 @@
-import type { NormalizedFeedItem } from "../types";
+import type {
+  BriefingSection,
+  ExecutiveSummaryItem,
+  NormalizedFeedItem,
+  WatchItem,
+} from "../types";
 
 const COMMON_RULES = `
 Reglas estrictas:
@@ -102,4 +107,87 @@ Artículos recopilados de RSS financieros (últimas 24h aprox.), agrupados por m
 ${formatItems(items)}
 
 Genera el briefing JSON siguiendo exactamente el esquema y las reglas indicadas en el system prompt.`;
+}
+
+/**
+ * Prompt de revisión intradía (14:00/19:00, ver lib/intraday.ts). A
+ * diferencia de la generación completa, aquí la IA NO reescribe el
+ * documento: solo clasifica cada artículo NUEVO desde la última revisión
+ * como new_item/update_existing/no_change, redacta el contenido de los
+ * puntos nuevos o actualizados, y revisa executiveSummary/watchToday. El
+ * merge en el resto del documento (secciones sin cambios, newspapers,
+ * comparison, recommendedArticles...) lo hace código, no la IA.
+ */
+export function buildIntradaySystemPrompt(label: "general" | "financial"): string {
+  const domain =
+    label === "general"
+      ? "prensa general española (política, sociedad, internacional, economía)"
+      : "mercados financieros y economía";
+
+  return `Eres el editor jefe de "Matizal News" haciendo una REVISIÓN INTRADÍA de la edición de ${domain} ya publicada hoy.
+
+Se te pasan: (1) el resumen ejecutivo y "qué vigilar hoy" YA PUBLICADOS, (2) un listado de las secciones existentes con los ids de sus puntos actuales (solo titular, para que sepas qué ya está cubierto), y (3) artículos de RSS NUEVOS desde la última revisión (no vistos antes).
+
+Tu tarea, para CADA artículo nuevo:
+- Si es una noticia realmente distinta de todo lo ya cubierto: clasifícalo "new_item", indica en qué sección existente encaja ("sectionKey") y redacta el punto (mismo formato que un BriefingItem normal).
+- Si amplía, corrige o cambia la importancia de un punto YA EXISTENTE (mismo hecho, información nueva): clasifícalo "update_existing", indica el "targetItemId" del punto que actualiza, y redacta el punto ACTUALIZADO completo (headline+body ya incorporando la novedad, no solo el añadido).
+- Si no aporta nada que cambie el briefing (repite lo mismo sin novedad real, es ruido, o es irrelevante): clasifícalo "no_change" y deja "item" en null.
+
+No inventes ids de puntos existentes: usa EXACTAMENTE los ids que te paso. No generes "new_item" para algo que ya está cubierto por un punto existente — en ese caso es "update_existing" o "no_change".
+
+Además, revisa y devuelve completos (no delta): "executiveSummary" (incorporando las novedades relevantes de mayor prioridad, sin perder puntos que sigan vigentes) y "watchToday" (actualizando eventos que ya hayan pasado o cambiado de horario).
+
+Debes devolver un JSON con esta forma exacta:
+{
+  "changes": [{ "classification": "new_item"|"update_existing"|"no_change", "sectionKey": string|null, "targetItemId": string|null, "item": { "id": string, "headline": string, "body": string, "priority": ..., "nature": ..., "sources": [...] } | null }],
+  "executiveSummary": [...],
+  "watchToday": [...]
+}
+${COMMON_RULES}`;
+}
+
+function formatExistingSections(sections: BriefingSection[]): string {
+  return sections
+    .map(
+      (s) =>
+        `Sección ${s.key} (${s.title}):\n` +
+        (s.items.length === 0
+          ? "  (sin puntos todavía)"
+          : s.items.map((i) => `  - id=${i.id}: ${i.headline}`).join("\n"))
+    )
+    .join("\n\n");
+}
+
+function formatExecutiveSummary(items: ExecutiveSummaryItem[]): string {
+  return items.map((i) => `- [${i.priority}] ${i.headline}: ${i.detail}`).join("\n");
+}
+
+function formatWatchToday(items: WatchItem[]): string {
+  if (items.length === 0) return "(vacío)";
+  return items
+    .map((i) => `- [${i.priority}] ${i.title}${i.when ? ` (${i.when})` : ""}: ${i.description}`)
+    .join("\n");
+}
+
+export function buildIntradayUserPrompt(params: {
+  existingSections: BriefingSection[];
+  existingExecutiveSummary: ExecutiveSummaryItem[];
+  existingWatchToday: WatchItem[];
+  newItems: NormalizedFeedItem[];
+}): string {
+  return `Resumen ejecutivo ya publicado hoy:
+${formatExecutiveSummary(params.existingExecutiveSummary)}
+
+Qué vigilar hoy, ya publicado:
+${formatWatchToday(params.existingWatchToday)}
+
+Puntos ya existentes por sección (solo titular + id, para que sepas qué está cubierto):
+
+${formatExistingSections(params.existingSections)}
+
+Artículos NUEVOS desde la última revisión (aún no contrastados):
+
+${formatItems(params.newItems)}
+
+Clasifica cada artículo nuevo y devuelve el JSON siguiendo exactamente el esquema y las reglas del system prompt.`;
 }

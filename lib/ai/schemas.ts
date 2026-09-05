@@ -113,7 +113,10 @@ export const financialBriefingAiSchema = z.object({
  * haciendo zod (schema.parse) sobre la respuesta ya recibida.
  */
 export function toOpenAiJsonSchema(
-  schema: typeof generalBriefingAiSchema | typeof financialBriefingAiSchema
+  schema:
+    | typeof generalBriefingAiSchema
+    | typeof financialBriefingAiSchema
+    | typeof intradayDeltaSchema
 ): Record<string, unknown> {
   const raw = z.toJSONSchema(schema, { target: "draft-7" }) as Record<string, unknown>;
   const rest = { ...raw };
@@ -149,3 +152,55 @@ function stripUnsupportedKeywords(node: unknown): unknown {
 
 export type GeneralBriefingAiPayload = z.infer<typeof generalBriefingAiSchema>;
 export type FinancialBriefingAiPayload = z.infer<typeof financialBriefingAiSchema>;
+
+/**
+ * Esquema del DELTA de una revisión intradía (ver lib/intraday.ts): en vez
+ * de pedirle a la IA que reescriba el briefing completo (caro, y arriesgado
+ * — reescribir de cero un documento largo con structured outputs invita a
+ * detalles inconsistentes con la versión anterior), se le pasan SOLO los
+ * artículos nuevos desde la última revisión + el resumen ejecutivo/watchToday
+ * actuales, y devuelve qué cambia. El merge en el documento completo lo hace
+ * código determinista (lib/intraday.ts), no la IA.
+ */
+const deltaClassificationSchema = z.enum([
+  "new_item",
+  "update_existing",
+  "no_change",
+]);
+
+const deltaChangeSchema = z.object({
+  classification: deltaClassificationSchema,
+  /**
+   * Sección destino (key de BriefingSection, ej. "B") para new_item. Para
+   * update_existing, la sección donde vive el id referenciado (informativo,
+   * el merge busca el id en todas las secciones igualmente).
+   */
+  sectionKey: z.string().nullable(),
+  /** Para update_existing: id del BriefingItem existente a actualizar. Null en new_item. */
+  targetItemId: z.string().nullable(),
+  /** Contenido del punto nuevo o actualizado. Null si classification es no_change. */
+  item: z
+    .object({
+      id: z.string().min(1),
+      headline: z.string().min(1),
+      body: z.string().min(1),
+      priority: prioritySchema,
+      nature: natureSchema.nullable(),
+      sources: z.array(sourceRefSchema),
+    })
+    .nullable(),
+});
+
+export const intradayDeltaSchema = z.object({
+  changes: z.array(deltaChangeSchema),
+  /**
+   * Resumen ejecutivo actualizado (lista completa, no delta) — es corto y
+   * conviene que la IA lo revise entero para reflejar bien la novedad del
+   * momento; ídem watchToday. Si nada cambia respecto al original, se
+   * devuelve tal cual se pasó en el prompt.
+   */
+  executiveSummary: z.array(executiveSummaryItemSchema).min(1),
+  watchToday: z.array(watchItemSchema),
+});
+
+export type IntradayDeltaPayload = z.infer<typeof intradayDeltaSchema>;

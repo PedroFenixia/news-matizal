@@ -2,7 +2,12 @@ import { randomUUID } from "node:crypto";
 import { GENERAL_SOURCES, FINANCIAL_SOURCES } from "./rss/sources";
 import { fetchFeeds } from "./rss/fetch";
 import { generateGeneralBriefing, generateFinancialBriefing } from "./ai";
-import { saveEdition, nextEditionInfo } from "./storage/editions";
+import { runIntradayRevision } from "./intraday";
+import {
+  saveEdition,
+  nextEditionInfo,
+  getEdition,
+} from "./storage/editions";
 import { logRunStart, logRunFinish } from "./storage/generation-log";
 import type { BriefingType } from "./types";
 
@@ -24,6 +29,10 @@ export interface GenerationOutcome {
   itemsProcessed?: number;
   sourcesConsulted?: number;
   error?: string;
+  /** Presente solo en revisiones intradía (ver runIntradayGeneration). */
+  skipped?: boolean;
+  newCount?: number;
+  updatedCount?: number;
 }
 
 function todayMadrid(): string {
@@ -181,6 +190,119 @@ export async function runDailyGeneration(
   console.log(
     `[generate:daily] Finalizado. general=${general.success ? "OK" : "ERROR"} financial=${
       financial.success ? "OK" : "ERROR"
+    }`
+  );
+  return [general, financial];
+}
+
+/**
+ * Revisión intradía de un tipo de briefing (14:00/19:00). Parte de la
+ * ÚLTIMA edición/revisión válida del día — si no existe ninguna todavía
+ * (ej. la de las 10:00 falló, o aún no ha corrido), NO genera una desde
+ * cero: eso es responsabilidad de runDailyGeneration/runGeneral(Financial).
+ * Una revisión intradía solo tiene sentido como continuación de una edición
+ * ya publicada. Si no hay artículos nuevos desde la última revisión, no se
+ * llama a la IA ni se crea una fila nueva (outcome.skipped = true).
+ */
+async function runIntraday(
+  type: BriefingType,
+  date: string,
+  sources: typeof GENERAL_SOURCES
+): Promise<GenerationOutcome> {
+  const runId = randomUUID();
+  const logId = logRunStart({
+    runId,
+    type,
+    trigger: "intraday",
+    startedAt: new Date().toISOString(),
+  });
+
+  try {
+    const previous = getEdition(type, date);
+    if (!previous) {
+      logRunFinish(logId, {
+        success: false,
+        finishedAt: new Date().toISOString(),
+        errorMessage: "No hay edición previa hoy: la revisión intradía necesita una edición inicial ya publicada.",
+      });
+      return {
+        type,
+        success: false,
+        error: "No hay edición inicial hoy todavía — la revisión intradía no puede partir de cero.",
+      };
+    }
+
+    const feedResults = await fetchFeeds(sources);
+    const okResults = feedResults.filter((r) => r.ok);
+    const items = okResults.flatMap((r) => r.items);
+
+    const result = await runIntradayRevision(previous, items);
+
+    if (!result) {
+      logRunFinish(logId, {
+        success: true,
+        finishedAt: new Date().toISOString(),
+        sourcesConsulted: feedResults.length,
+        itemsProcessed: 0,
+      });
+      console.log(`[intraday:${type}] Sin novedades desde la última edición — no se genera revisión.`);
+      return { type, success: true, skipped: true, newCount: 0, updatedCount: 0 };
+    }
+
+    const editionInfo = nextEditionInfo(type, date);
+    const briefing = { ...result.briefing, ...editionInfo, date, type } as typeof result.briefing;
+    saveEdition(briefing);
+
+    logRunFinish(logId, {
+      success: true,
+      finishedAt: new Date().toISOString(),
+      sourcesConsulted: feedResults.length,
+      itemsProcessed: items.length,
+      editionId: editionInfo.editionId,
+    });
+
+    console.log(
+      `[intraday:${type}] OK edición=${editionInfo.editionId} nuevos=${result.revisionSummary.newCount} actualizados=${result.revisionSummary.updatedCount}`
+    );
+
+    return {
+      type,
+      success: true,
+      editionId: editionInfo.editionId,
+      itemsProcessed: items.length,
+      sourcesConsulted: feedResults.length,
+      newCount: result.revisionSummary.newCount,
+      updatedCount: result.revisionSummary.updatedCount,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logRunFinish(logId, {
+      success: false,
+      finishedAt: new Date().toISOString(),
+      errorMessage: message,
+    });
+    console.error(`[intraday:${type}] ERROR: ${message}`);
+    return { type, success: false, error: message };
+  }
+}
+
+/**
+ * Ejecuta la revisión intradía de ambos tipos EN PARALELO (14:00 o 19:00
+ * Europe/Madrid). Cada tipo falla independientemente; un fallo NUNCA toca
+ * la última edición válida (storage append-only: si algo falla, simplemente
+ * no se crea una fila nueva).
+ */
+export async function runIntradayGeneration(
+  date: string = todayMadrid()
+): Promise<GenerationOutcome[]> {
+  console.log(`[intraday] Iniciando revisión intradía para ${date}`);
+  const [general, financial] = await Promise.all([
+    runIntraday("general", date, GENERAL_SOURCES),
+    runIntraday("financial", date, FINANCIAL_SOURCES),
+  ]);
+  console.log(
+    `[intraday] Finalizado. general=${general.skipped ? "SIN CAMBIOS" : general.success ? "OK" : "ERROR"} financial=${
+      financial.skipped ? "SIN CAMBIOS" : financial.success ? "OK" : "ERROR"
     }`
   );
   return [general, financial];

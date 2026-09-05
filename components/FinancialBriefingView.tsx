@@ -11,6 +11,7 @@ import { PriorityBadge } from "./PriorityBadge";
 import { SourceList } from "./SourceLink";
 import { PriorityFilter } from "./PriorityFilter";
 import { TableOfContents, type TocEntry } from "./TableOfContents";
+import { RevisionTagBadge } from "./RevisionTagBadge";
 
 export function FinancialBriefingView({
   briefing,
@@ -54,6 +55,7 @@ export function FinancialBriefingView({
           isDemo={briefing.isDemo}
           isLatest={isLatest}
           path={path}
+          revisionSummary={briefing.revisionSummary}
         />
         <div className="-mt-4 mb-8">
           <PriorityFilter />
@@ -81,7 +83,10 @@ export function FinancialBriefingView({
               <div className="flex flex-col gap-8">
                 {briefing.businessImpact.map((item) => (
                   <article key={item.id} data-priority={item.priority} className="priority-item flex flex-col gap-2.5">
-                    <PriorityBadge level={item.priority} />
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <PriorityBadge level={item.priority} />
+                      <RevisionTagBadge tag={item.revisionTag} />
+                    </div>
                     <h3 className="font-serif text-xl font-medium leading-snug">
                       {item.headline}
                     </h3>

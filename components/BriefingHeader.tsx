@@ -2,6 +2,7 @@ import { UpdateStatus } from "./UpdateStatus";
 import { ShareButton } from "./ShareButton";
 import { DemoBadge } from "./DemoBadge";
 import { SITE_URL } from "@/lib/site";
+import type { RevisionSummary } from "@/lib/types";
 
 export function BriefingHeader({
   kicker,
@@ -12,6 +13,7 @@ export function BriefingHeader({
   isDemo,
   isLatest,
   path,
+  revisionSummary,
 }: {
   kicker: string;
   title: string;
@@ -21,6 +23,7 @@ export function BriefingHeader({
   isDemo?: boolean;
   isLatest: boolean;
   path: string;
+  revisionSummary?: RevisionSummary;
 }) {
   const formattedDate = new Intl.DateTimeFormat("es-ES", {
     timeZone: "Europe/Madrid",
@@ -43,7 +46,12 @@ export function BriefingHeader({
       </h1>
       <p className="text-(--muted) capitalize mb-5">{formattedDate}</p>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <UpdateStatus updatedAt={updatedAt} editionLabel={editionLabel} isLatest={isLatest} />
+        <UpdateStatus
+          updatedAt={updatedAt}
+          editionLabel={editionLabel}
+          isLatest={isLatest}
+          revisionSummary={revisionSummary}
+        />
         <ShareButton title={title} url={`${SITE_URL}${path}`} />
       </div>
     </header>

@@ -1,6 +1,7 @@
 import type { ExecutiveSummaryItem } from "@/lib/types";
 import { PriorityBadge } from "./PriorityBadge";
 import { SourceList } from "./SourceLink";
+import { RevisionTagBadge } from "./RevisionTagBadge";
 
 export function ExecutiveSummaryList({ items }: { items: ExecutiveSummaryItem[] }) {
   return (
@@ -15,8 +16,9 @@ export function ExecutiveSummaryList({ items }: { items: ExecutiveSummaryItem[] 
             {String(idx + 1).padStart(2, "0")}
           </span>
           <div className="flex-1">
-            <div className="mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
               <PriorityBadge level={item.priority} />
+              <RevisionTagBadge tag={item.revisionTag} />
             </div>
             <p className="font-serif text-lg font-medium leading-snug">{item.headline}</p>
             <p className="text-sm text-(--ink-2) leading-relaxed text-justify mt-1">{item.detail}</p>

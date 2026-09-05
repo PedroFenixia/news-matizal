@@ -264,9 +264,81 @@ guardada como fila independiente, y la UI muestra "Última actualización:
 HH:MM" junto con la etiqueta de qué edición es ("Edición inicial",
 "Actualización 1"...).
 
+### Revisiones intradía (14:00 y 19:00)
+
+Además de la edición inicial completa (~10:00), Matizal News soporta
+**revisiones intradía**: dos pasadas ligeras a las 14:00 y 19:00
+Europe/Madrid que actualizan la edición del día SIN regenerarla desde cero.
+
+**Cómo funciona** (`lib/intraday.ts`, invocado desde
+`lib/briefing-generator.ts` → `runIntradayGeneration()`):
+
+1. Recupera la última edición/revisión válida del día (`getEdition(type, date)`).
+   Si no existe ninguna todavía (la de las 10:00 falló o aún no ha corrido),
+   la revisión intradía **no genera nada** — no tiene sentido partir de cero
+   aquí, para eso está la edición inicial.
+2. Vuelve a consultar los mismos feeds RSS y descarta, por código (sin IA),
+   los artículos cuya URL ya apareciera como fuente en la edición anterior
+   (`detectNewItems`). Si no hay ninguno nuevo, tampoco se llama a la IA ni
+   se crea una fila nueva — la revisión queda marcada `skipped` en el log.
+3. Si hay artículos nuevos, se le pide a la IA que **clasifique cada uno**
+   (`new_item` / `update_existing` / `no_change`) y redacte solo el
+   contenido de los puntos nuevos o actualizados, además de revisar
+   `executiveSummary` y `watchToday` completos. La IA NUNCA reescribe el
+   resto del documento (secciones sin cambios, newspapers/outlets,
+   comparison, recommendedArticles se copian tal cual de la edición
+   anterior) — esto es determinista, en código (`applySectionChanges`), no
+   una regeneración por IA.
+4. Los puntos afectados quedan marcados con `revisionTag: "new"` o
+   `"updated"` (se renderizan como badges "Nuevo"/"Actualizado" en la UI).
+   El resultado se guarda como una fila nueva y append-only
+   (`update-1`, `update-2`...), igual que "Actualizar ahora" — nunca se
+   sobrescribe ni se pierde la revisión anterior.
+5. La portada y las páginas `/financiero` y `/prensa-general` siempre leen
+   `getLatestEdition()`, así que automáticamente muestran la revisión más
+   reciente; el histórico (`/archivo` → `listEditionMeta`) sigue permitiendo
+   consultar todas las revisiones del mismo día.
+
+**Independiente por tipo**: si la revisión del general falla, la del
+financiero sigue su curso (y viceversa) — mismo patrón que la generación
+diaria. Si la revisión completa falla, la última edición válida se queda
+tal cual (storage append-only: un fallo simplemente no crea fila nueva).
+
+**Estado visible**: `UpdateStatus` muestra "Última actualización: HH:MM" y,
+cuando la edición activa es una revisión intradía con cambios,
+"X nuevas/actualizadas desde la edición anterior" (`RevisionSummary`, ver
+`lib/types.ts`).
+
+**Endpoints/scripts**: `POST /api/cron/intraday` (protegido por
+`CRON_SECRET`, igual que `/api/cron/daily`) o `scripts/generate-intraday.ts`
+vía crontab/systemd:
+
+```cron
+# ⚠️ NO instalado en producción todavía — ver aviso más abajo.
+0 12 * * * cd /path/to/news-matizal && /usr/bin/npx tsx scripts/generate-intraday.ts >> /var/log/matizal-news/generate-intraday.log 2>&1
+0 17 * * * cd /path/to/news-matizal && /usr/bin/npx tsx scripts/generate-intraday.ts >> /var/log/matizal-news/generate-intraday.log 2>&1
+```
+
+(12:00/17:00 UTC = 14:00/19:00 Europe/Madrid en horario de verano; usa un
+systemd timer con `OnCalendar=*-*-* 14,19:00:00` + `TZ=Europe/Madrid` si
+prefieres no depender de calcular el offset a mano — ver el ejemplo de
+systemd timer más abajo, sección 11.8, y replícalo para 14:00/19:00.)
+
+> **⚠️ Importante:** estos cron jobs están implementados (endpoint, script,
+> lógica) pero **deliberadamente NO instalados** en el crontab de producción
+> del VPS. Actívalos solo tras probar el flujo manualmente (`curl -X POST
+> -H "x-cron-secret: ..." https://news.matizal.com/api/cron/intraday` o
+> `npm run generate:intraday`) y confirmar que el resultado es el esperado.
+
 ### Limpieza mensual
 
-Ver sección 5. Cron recomendado:
+Ver sección 5. La retención (borrado el día 5 del mes anterior completo) se
+aplica igual a TODAS las filas de `editions` de ese mes, sin distinguir
+edición inicial de revisión intradía — `DELETE FROM editions WHERE date
+LIKE '<mes>-%'` borra por fecha, no por `edition_id`, así que cubre
+automáticamente cualquier número de revisiones por día.
+
+Cron recomendado:
 
 ```cron
 0 3 5 * * cd /path/to/news-matizal && /usr/bin/npx tsx scripts/cleanup.ts >> /var/log/matizal-news/cleanup.log 2>&1
@@ -503,6 +575,16 @@ Usa `POST /api/refresh` (o ejecuta `runDailyGeneration("manual")`
 manualmente) — genera una revisión nueva (`update-N`) sin tocar las
 anteriores. El storage nunca sobrescribe.
 
+**`/api/cron/intraday` devuelve `success: false` con "No hay edición inicial hoy todavía".**
+Es el comportamiento esperado: una revisión intradía necesita partir de una
+edición ya publicada ese día. Corre primero `/api/cron/daily` (o espera al
+cron de las 10:00) y reintenta.
+
+**La revisión intradía dice `skipped: true` y no crea edición nueva.**
+También esperado: no se detectaron artículos nuevos desde la última
+revisión (`detectNewItems` no encontró ninguna URL no vista). No es un
+error — significa que de verdad no ha cambiado nada desde la última pasada.
+
 **El modo oscuro parpadea al cargar (flash de tema incorrecto).**
 No debería ocurrir: `components/ThemeScript.tsx` inyecta un script inline en
 `<head>` que aplica `data-theme` antes del primer paint, leyendo
@@ -524,9 +606,11 @@ componentes):
   `--green #009080` (acento de marca). Modo oscuro: derivación propia
   (negro cálido `#141310`, mismo verde de acento).
 - **Lenguaje visual**: esquinas rectas (sin `border-radius`), bordes finos de
-  1px, botones que invierten en `:hover`, numeración de sección tipo "§ A"
-  en serif itálica, iconografía mínima (flechas `→` en vez de iconos
-  decorativos).
+  1px, botones que invierten en `:hover`, numeración de sección secuencial
+  ("01", "02"...) en serif itálica (`components/SectionHeading.tsx` — el
+  número es el orden real de aparición, no una letra fija, para que nunca
+  haya huecos ni duplicados), iconografía mínima (flechas `→` en vez de
+  iconos decorativos).
 - Modo Claro/Oscuro/Sistema con preferencia en `localStorage`
   (`components/ThemeToggle.tsx`), sin flash de tema incorrecto
   (`components/ThemeScript.tsx`).
@@ -539,3 +623,24 @@ vigilar hoy" (`components/PriorityBadge.tsx`):
 - 🔴 **Requiere atención** — impacto alto/inmediato.
 - 🟠 **Importante** — relevante, conviene seguir.
 - 🟢 **Contexto** — información para entender el escenario.
+
+## 16. Tests
+
+```bash
+npm test
+```
+
+Usa el test runner nativo de Node (`node --test`, sin dependencias extra) vía
+`tsx` para poder importar TypeScript directamente. Cubre la lógica más
+crítica y determinista, no componentes React:
+
+- `test/intraday.test.ts` — detección de artículos nuevos por URL
+  (`detectNewItems`) y el merge determinista de una revisión intradía
+  (`applySectionChanges`: alta de puntos nuevos, actualización por id,
+  manejo de un `targetItemId` que la IA se haya inventado).
+- `test/retention.test.ts` — `computeTargetMonthToDelete` con los casos
+  límite de la regla de retención (día 5 exacto, cualquier otro día, cambio
+  de año en enero, salvaguarda contra borrar el mes actual).
+
+`npm run build` (que incluye el typecheck de TypeScript) y `npm run lint`
+son la otra red de seguridad — corre ambos antes de desplegar.

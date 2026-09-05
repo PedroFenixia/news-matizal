@@ -53,6 +53,7 @@ export function GeneralBriefingView({
           isDemo={briefing.isDemo}
           isLatest={isLatest}
           path={path}
+          revisionSummary={briefing.revisionSummary}
         />
         <div className="-mt-4 mb-8">
           <PriorityFilter />

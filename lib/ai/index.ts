@@ -28,11 +28,11 @@ import type {
  * ambos mundos, para no filtrar esta particularidad de OpenAI al resto del
  * código (componentes, storage, etc. no deben preocuparse de esto).
  */
-function nullToUndefined<T>(value: T | null | undefined): T | undefined {
+export function nullToUndefined<T>(value: T | null | undefined): T | undefined {
   return value === null ? undefined : value;
 }
 
-type AiSourceRef = {
+export type AiSourceRef = {
   outlet: string;
   title: string | null;
   url: string | null;
@@ -46,7 +46,7 @@ type AiSection = GeneralBriefingAiPayload["sections"][number];
 type AiOutletHighlight = GeneralBriefingAiPayload["newspapers"][number];
 type AiRecommendedArticle = GeneralBriefingAiPayload["recommendedArticles"][number];
 
-function normalizeSourceRef(s: AiSourceRef): SourceRef {
+export function normalizeSourceRef(s: AiSourceRef): SourceRef {
   return {
     outlet: s.outlet,
     title: nullToUndefined(s.title),
@@ -100,7 +100,7 @@ function normalizeArticles(articles: AiRecommendedArticle[]) {
  * sin conocer el proveedor concreto. Cambiar de proveedor = cambiar esta
  * factory (y añadir la implementación en un archivo `*-provider.ts` nuevo).
  */
-function getProvider(): AiProvider {
+export function getProvider(): AiProvider {
   const providerName = process.env.AI_PROVIDER ?? "openai";
   switch (providerName) {
     case "openai":
@@ -110,7 +110,7 @@ function getProvider(): AiProvider {
   }
 }
 
-function extractJson(raw: string): unknown {
+export function extractJson(raw: string): unknown {
   // response_format json_object ya garantiza JSON puro, pero por robustez
   // extraemos el primer bloque {...} por si el modelo añade texto extra.
   const trimmed = raw.trim();
@@ -216,7 +216,10 @@ export async function generateFinancialBriefing(
   const raw = await provider.generateJson({
     systemPrompt: buildFinancialSystemPrompt(),
     userPrompt: buildFinancialUserPrompt(items),
-    maxOutputTokens: 7500,
+    // Ampliado tras observar un truncamiento real en producción con 7500
+    // (el financiero es la generación más larga: 9 secciones + businessImpact
+    // + outlets + comparison + recommendedArticles, todo con sources completas).
+    maxOutputTokens: 9000,
     jsonSchema: {
       name: "financial_briefing",
       schema: toOpenAiJsonSchema(financialBriefingAiSchema),
