@@ -63,22 +63,28 @@ export function ThemeToggle() {
     <div
       role="radiogroup"
       aria-label="Tema de la aplicación"
-      className="flex items-center border border-(--border) text-[11px] font-mono uppercase tracking-wider"
+      className="flex items-center gap-1 text-[11px] font-mono uppercase tracking-wider"
     >
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          role="radio"
-          aria-checked={choice === opt.value}
-          onClick={() => handleChange(opt.value)}
-          className={`px-2.5 py-1.5 transition-colors cursor-pointer ${
-            choice === opt.value
-              ? "bg-(--ink) text-(--paper)"
-              : "text-(--muted) hover:text-(--foreground)"
-          }`}
-        >
-          {opt.label}
-        </button>
+      {options.map((opt, idx) => (
+        <span key={opt.value} className="flex items-center gap-1">
+          {idx > 0 && (
+            <span aria-hidden="true" className="text-(--border-strong)">
+              /
+            </span>
+          )}
+          <button
+            role="radio"
+            aria-checked={choice === opt.value}
+            onClick={() => handleChange(opt.value)}
+            className={`px-1 py-1 transition-colors cursor-pointer ${
+              choice === opt.value
+                ? "text-(--accent)"
+                : "text-(--muted) hover:text-(--foreground)"
+            }`}
+          >
+            {opt.label}
+          </button>
+        </span>
       ))}
     </div>
   );

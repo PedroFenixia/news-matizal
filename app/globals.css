@@ -114,6 +114,22 @@
   color-scheme: light;
 }
 
+/*
+ * Variantes de imagen por tema (ver components/BrandMark.tsx). Por defecto
+ * (tema "sistema") se decide por prefers-color-scheme; un tema forzado a
+ * mano (data-theme) gana siempre sobre la preferencia del sistema.
+ */
+.theme-light-only { display: block; }
+.theme-dark-only { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-light-only { display: none; }
+  :root:not([data-theme="light"]) .theme-dark-only { display: block; }
+}
+
+:root[data-theme="dark"] .theme-light-only { display: none; }
+:root[data-theme="dark"] .theme-dark-only { display: block; }
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

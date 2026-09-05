@@ -37,7 +37,7 @@ export function FinancialBriefingView({
       <div className="max-w-3xl">
         <BriefingHeader
           kicker="Financiero"
-          title="Briefing de mercados y economía"
+          title="Edición de mercados y economía"
           date={briefing.date}
           updatedAt={briefing.updatedAt}
           editionLabel={briefing.editionLabel}

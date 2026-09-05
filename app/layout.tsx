@@ -32,25 +32,25 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — Briefing diario ejecutivo`,
+    default: `${SITE_NAME} — Edición diaria ejecutiva`,
     template: `%s — ${SITE_NAME}`,
   },
   description:
-    "Briefing diario ejecutivo de prensa española y mercados financieros. Un resumen sobrio y contrastado para empezar el día informado.",
+    "Edición diaria ejecutiva de prensa española y mercados financieros. Un resumen sobrio y contrastado para empezar el día informado.",
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — Briefing diario ejecutivo`,
+    title: `${SITE_NAME} — Edición diaria ejecutiva`,
     description:
-      "Briefing diario ejecutivo de prensa española y mercados financieros.",
+      "Edición diaria ejecutiva de prensa española y mercados financieros.",
     url: SITE_URL,
     locale: "es_ES",
   },
   twitter: {
     card: "summary",
-    title: `${SITE_NAME} — Briefing diario ejecutivo`,
+    title: `${SITE_NAME} — Edición diaria ejecutiva`,
     description:
-      "Briefing diario ejecutivo de prensa española y mercados financieros.",
+      "Edición diaria ejecutiva de prensa española y mercados financieros.",
   },
   icons: {
     icon: "/brand/logo.png",

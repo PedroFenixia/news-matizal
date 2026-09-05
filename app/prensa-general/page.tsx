@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Prensa general",
-  description: "Briefing diario de prensa nacional española, contrastado entre cabeceras.",
+  description: "Edición diaria de prensa nacional española, contrastada entre cabeceras.",
   alternates: { canonical: "/prensa-general" },
 };
 

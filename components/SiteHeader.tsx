@@ -1,16 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
+import { BrandMark } from "./BrandMark";
 
 const NAV_ITEMS = [
   { href: "/", label: "Inicio" },
   { href: "/financiero", label: "Financiero" },
   { href: "/prensa-general", label: "Prensa general" },
-  { href: "/archivo", label: "Archivo" },
+  { href: "/archivo", label: "Fue noticia" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -31,14 +31,7 @@ export function SiteHeader() {
             className="flex items-center gap-2.5 shrink-0"
             onClick={() => setMenuOpen(false)}
           >
-            <Image
-              src="/brand/logo-iso-bold.png"
-              alt=""
-              width={28}
-              height={28}
-              priority
-              className="shrink-0"
-            />
+            <BrandMark size={28} />
             <span className="font-serif text-lg font-semibold tracking-tight">
               Matizal <span className="font-mono text-[13px] font-normal uppercase tracking-widest text-(--accent)">News</span>
             </span>

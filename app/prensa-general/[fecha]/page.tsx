@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { fecha } = await params;
   return {
     title: `Prensa general — ${fecha}`,
-    description: `Briefing de prensa española del ${fecha}.`,
+    description: `Edición de prensa española del ${fecha}.`,
     alternates: { canonical: `/prensa-general/${fecha}` },
   };
 }

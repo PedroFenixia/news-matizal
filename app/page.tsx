@@ -145,7 +145,7 @@ export default function HomePage() {
             Financiero
           </span>
           <span className="font-serif text-xl font-medium text-(--foreground) group-hover:text-(--accent) transition-colors">
-            Ver briefing financiero completo →
+            Ver edición financiera completa →
           </span>
         </Link>
         <Link
@@ -156,50 +156,10 @@ export default function HomePage() {
             Prensa general
           </span>
           <span className="font-serif text-xl font-medium text-(--foreground) group-hover:text-(--accent) transition-colors">
-            Ver briefing de prensa completo →
+            Ver edición de prensa completa →
           </span>
         </Link>
       </section>
-
-      {/* Mercados de un vistazo */}
-      {financial && (
-        <section className="py-10 border-b border-(--border)">
-          <h2 className="font-serif text-2xl font-semibold tracking-tight mb-6">
-            Mercados de un vistazo
-          </h2>
-          <ul className="flex flex-col gap-4">
-            {financial.sections
-              .find((s) => s.title === "Mercados")
-              ?.items.slice(0, 3)
-              .map((item) => (
-                <li key={item.id} className="flex flex-col gap-1">
-                  <PriorityBadge level={item.priority} />
-                  <p className="font-medium">{item.headline}</p>
-                  <p className="text-sm text-(--ink-2)">{item.body}</p>
-                </li>
-              )) ?? (
-              <p className="text-sm text-(--muted) italic">Sin datos de mercados disponibles hoy.</p>
-            )}
-          </ul>
-        </section>
-      )}
-
-      {/* Prensa española */}
-      {general && (
-        <section className="py-10 border-b border-(--border)">
-          <h2 className="font-serif text-2xl font-semibold tracking-tight mb-6">
-            Prensa española
-          </h2>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {general.newspapers.slice(0, 4).map((n) => (
-              <div key={n.outlet} className="border border-(--border) p-4">
-                <p className="font-serif font-semibold mb-1">{n.outlet}</p>
-                <p className="text-sm text-(--ink-2) leading-relaxed">{n.summary}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Riesgos / Alertas */}
       <section className="py-10 border-b border-(--border)">

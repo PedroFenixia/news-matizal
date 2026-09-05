@@ -34,7 +34,7 @@ export function GeneralBriefingView({
       <div className="max-w-3xl">
         <BriefingHeader
           kicker="Prensa general"
-          title="Briefing de prensa española"
+          title="Edición de prensa española"
           date={briefing.date}
           updatedAt={briefing.updatedAt}
           editionLabel={briefing.editionLabel}

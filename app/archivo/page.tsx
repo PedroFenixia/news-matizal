@@ -5,7 +5,7 @@ import { listDates, listEditionMeta } from "@/lib/storage/editions";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Archivo",
+  title: "Fue noticia",
   description: "Histórico completo de ediciones diarias de prensa y mercados.",
   alternates: { canonical: "/archivo" },
 };
@@ -32,15 +32,15 @@ export default function ArchivoPage() {
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10 sm:py-14">
       <header className="border-b border-(--border-strong) pb-8 mb-8">
         <span className="font-mono text-xs uppercase tracking-widest text-(--accent)">
-          Archivo
+          Fue noticia
         </span>
         <h1 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight mt-3">
           Histórico de ediciones
         </h1>
         <p className="text-(--ink-2) mt-3 max-w-xl leading-relaxed">
           Cada edición se conserva de forma permanente durante el periodo de
-          retención vigente. Selecciona una fecha para consultar el briefing
-          financiero y de prensa general de ese día.
+          retención vigente. Selecciona una fecha para consultar la edición
+          financiera y de prensa general de ese día.
         </p>
       </header>
 

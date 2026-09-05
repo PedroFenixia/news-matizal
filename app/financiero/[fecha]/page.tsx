@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { fecha } = await params;
   return {
     title: `Financiero — ${fecha}`,
-    description: `Briefing de mercados y economía del ${fecha}.`,
+    description: `Edición de mercados y economía del ${fecha}.`,
     alternates: { canonical: `/financiero/${fecha}` },
   };
 }

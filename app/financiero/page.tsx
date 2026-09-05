@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Financiero",
-  description: "Briefing diario de mercados, macroeconomía y empresas.",
+  description: "Edición diaria de mercados, macroeconomía y empresas.",
   alternates: { canonical: "/financiero" },
 };
 
