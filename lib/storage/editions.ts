@@ -114,6 +114,44 @@ export function listDates(type: BriefingType): string[] {
   return Array.from(dbDates).sort((a, b) => (a < b ? 1 : -1));
 }
 
+/**
+ * Une las fechas con edición de AMBOS tipos (general + financiero), más
+ * recientes primero — usado por /archivo. Separado de listDates (un solo
+ * tipo) porque el listado combinado es la vista que de verdad necesita
+ * paginar (con los dos tipos puede acumular muchas fechas rápido).
+ */
+export function listAllDates(): string[] {
+  const general = new Set(listDates("general"));
+  const financial = listDates("financial");
+  for (const d of financial) general.add(d);
+  return Array.from(general).sort((a, b) => (a < b ? 1 : -1));
+}
+
+export interface PagedDates {
+  dates: string[];
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  totalDates: number;
+}
+
+/** Página de `listAllDates()`, 1-indexada. Página fuera de rango se recorta al límite válido. */
+export function listAllDatesPaged(page: number, pageSize: number): PagedDates {
+  const all = listAllDates();
+  const totalDates = all.length;
+  const totalPages = Math.max(1, Math.ceil(totalDates / pageSize));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const start = (safePage - 1) * pageSize;
+
+  return {
+    dates: all.slice(start, start + pageSize),
+    page: safePage,
+    pageSize,
+    totalPages,
+    totalDates,
+  };
+}
+
 /** Metadatos ligeros de todas las ediciones de una fecha (sin el payload completo). */
 export function listEditionMeta(
   type: BriefingType,
