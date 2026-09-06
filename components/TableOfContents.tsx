@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { ExternalTextLink } from "./TextLink";
 
 export interface TocEntry {
   key: string;
@@ -72,19 +73,16 @@ export function TableOfContents({ entries }: { entries: TocEntry[] }) {
     <ol className="flex flex-col gap-0.5">
       {entries.map((entry, idx) => (
         <li key={entry.key}>
-          <a
+          <ExternalTextLink
             href={`#seccion-${entry.key}`}
-            className={`flex items-baseline gap-2 py-1 text-sm transition-colors ${
-              activeKey === entry.key
-                ? "text-(--accent)"
-                : "text-(--ink-2) hover:text-(--foreground)"
-            }`}
+            active={activeKey === entry.key}
+            className="flex items-baseline gap-2 py-1 text-sm"
           >
             <span className="section-mark text-xs shrink-0">
               {String(idx + 1).padStart(2, "0")}
             </span>
             <span className="truncate">{entry.title}</span>
-          </a>
+          </ExternalTextLink>
         </li>
       ))}
     </ol>

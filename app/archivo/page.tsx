@@ -82,7 +82,7 @@ export default async function ArchivoPage({
                     {hasFinancial && (
                       <Link
                         href={`/financiero/${fecha}`}
-                        className="border border-(--border-strong) px-3 py-2 hover:bg-(--ink) hover:text-(--paper) transition-colors"
+                        className="border border-(--border-strong) px-3 py-2 transition-colors hover:border-(--accent) hover:text-(--accent)"
                       >
                         Financiero
                       </Link>
@@ -90,7 +90,7 @@ export default async function ArchivoPage({
                     {hasGeneral && (
                       <Link
                         href={`/prensa-general/${fecha}`}
-                        className="border border-(--border-strong) px-3 py-2 hover:bg-(--ink) hover:text-(--paper) transition-colors"
+                        className="border border-(--border-strong) px-3 py-2 transition-colors hover:border-(--accent) hover:text-(--accent)"
                       >
                         Prensa general
                       </Link>
@@ -109,7 +109,7 @@ export default async function ArchivoPage({
               {page > 1 ? (
                 <Link
                   href={page - 1 === 1 ? "/archivo" : `/archivo?page=${page - 1}`}
-                  className="border border-(--border-strong) px-3 py-2 hover:bg-(--ink) hover:text-(--paper) transition-colors"
+                  className="border border-(--border-strong) px-3 py-2 transition-colors hover:border-(--accent) hover:text-(--accent)"
                 >
                   ← Anterior
                 </Link>
@@ -124,7 +124,7 @@ export default async function ArchivoPage({
               {page < totalPages ? (
                 <Link
                   href={`/archivo?page=${page + 1}`}
-                  className="border border-(--border-strong) px-3 py-2 hover:bg-(--ink) hover:text-(--paper) transition-colors"
+                  className="border border-(--border-strong) px-3 py-2 transition-colors hover:border-(--accent) hover:text-(--accent)"
                 >
                   Siguiente →
                 </Link>

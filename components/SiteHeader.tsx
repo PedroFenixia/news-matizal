@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { BrandMark } from "./BrandMark";
+import { TextLink } from "./TextLink";
 
 const NAV_ITEMS = [
   { href: "/", label: "Inicio" },
@@ -39,17 +40,14 @@ export function SiteHeader() {
 
           <nav className="hidden md:flex items-center gap-1 font-mono text-xs uppercase tracking-wider">
             {NAV_ITEMS.map((item) => (
-              <Link
+              <TextLink
                 key={item.href}
                 href={item.href}
-                className={`px-3 py-2 transition-colors ${
-                  isActive(pathname, item.href)
-                    ? "text-(--foreground) border-b-2 border-(--accent)"
-                    : "text-(--muted) hover:text-(--foreground)"
-                }`}
+                active={isActive(pathname, item.href)}
+                className="px-3 py-2"
               >
                 {item.label}
-              </Link>
+              </TextLink>
             ))}
           </nav>
 
@@ -82,18 +80,17 @@ export function SiteHeader() {
         <div className="md:hidden border-t border-(--border) bg-(--background)">
           <nav className="flex flex-col font-mono text-sm uppercase tracking-wider">
             {NAV_ITEMS.map((item) => (
-              <Link
+              <TextLink
                 key={item.href}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
+                active={isActive(pathname, item.href)}
                 className={`px-4 py-3.5 border-b border-(--border) ${
-                  isActive(pathname, item.href)
-                    ? "text-(--accent)"
-                    : "text-(--ink-2)"
+                  isActive(pathname, item.href) ? "" : "text-(--ink-2)"
                 }`}
               >
                 {item.label}
-              </Link>
+              </TextLink>
             ))}
           </nav>
           <div className="p-4">

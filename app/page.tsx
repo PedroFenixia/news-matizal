@@ -27,8 +27,9 @@ function greeting(): string {
       hour12: false,
     }).format(new Date())
   );
-  if (hour < 12) return "Buenos días";
-  if (hour < 20) return "Buenas tardes";
+  // Franjas exactas pedidas: 07-13 días, 14-20 tardes, 21-06 noches.
+  if (hour >= 7 && hour <= 13) return "Buenos días";
+  if (hour >= 14 && hour <= 20) return "Buenas tardes";
   return "Buenas noches";
 }
 

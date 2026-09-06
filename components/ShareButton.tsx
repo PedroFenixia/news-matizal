@@ -35,7 +35,7 @@ export function ShareButton({
     <button
       type="button"
       onClick={handleShare}
-      className={`inline-flex items-center gap-2 border border-(--border-strong) px-3.5 py-2 font-mono text-[11px] uppercase tracking-wider text-(--foreground) hover:bg-(--ink) hover:text-(--paper) transition-colors cursor-pointer ${className}`}
+      className={`inline-flex items-center gap-2 border border-(--border-strong) px-3.5 py-2 font-mono text-[11px] uppercase tracking-wider text-(--foreground) transition-colors cursor-pointer hover:border-(--accent) hover:text-(--accent) ${className}`}
     >
       {copied ? "Enlace copiado" : "Compartir"}
     </button>

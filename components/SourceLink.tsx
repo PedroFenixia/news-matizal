@@ -1,4 +1,5 @@
 import type { SourceRef } from "@/lib/types";
+import { ExternalTextLink } from "./TextLink";
 
 /**
  * Muestra una fuente. Si tiene URL verificable, es pulsable hacia el
@@ -8,14 +9,9 @@ import type { SourceRef } from "@/lib/types";
 export function SourceLink({ source }: { source: SourceRef }) {
   if (source.url) {
     return (
-      <a
-        href={source.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline decoration-(--border-strong) decoration-1 underline-offset-2 hover:decoration-(--accent) hover:text-(--accent) transition-colors"
-      >
+      <ExternalTextLink href={source.url} target="_blank" rel="noopener noreferrer">
         {source.outlet}
-      </a>
+      </ExternalTextLink>
     );
   }
   return <span>{source.outlet}</span>;

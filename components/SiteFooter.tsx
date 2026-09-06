@@ -1,4 +1,5 @@
 import { BrandMark } from "./BrandMark";
+import { ExternalTextLink } from "./TextLink";
 
 export function SiteFooter() {
   return (
@@ -16,14 +17,9 @@ export function SiteFooter() {
 
         <div className="font-mono text-[11px] uppercase tracking-wider text-(--muted) flex flex-col sm:items-end gap-1">
           <p>Edición diaria ejecutiva — prensa y mercados</p>
-          <a
-            href="https://matizal.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-(--accent) hover:text-(--accent-dark) transition-colors"
-          >
+          <ExternalTextLink href="https://matizal.com" target="_blank" rel="noopener noreferrer" active>
             matizal.com →
-          </a>
+          </ExternalTextLink>
         </div>
       </div>
     </footer>
