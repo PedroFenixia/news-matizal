@@ -8,6 +8,7 @@ import { DemoBadge } from "@/components/DemoBadge";
 import { ShareButton } from "@/components/ShareButton";
 import { ArticleCard } from "@/components/ArticleCard";
 import { RevisionTagBadge } from "@/components/RevisionTagBadge";
+import { SourceList } from "@/components/SourceLink";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -157,6 +158,9 @@ export default function HomePage() {
                 </div>
                 <p className="font-serif text-lg font-medium leading-snug">{item.headline}</p>
                 <p className="text-sm text-(--ink-2) leading-relaxed text-justify mt-1">{item.detail}</p>
+                <div className="mt-2">
+                  <SourceList sources={item.sources ?? []} />
+                </div>
               </div>
             </li>
           ))}
@@ -208,6 +212,9 @@ export default function HomePage() {
                 </div>
                 <p className="font-medium">{a.headline}</p>
                 <p className="text-sm text-(--ink-2) text-justify">{a.detail}</p>
+                <div className="mt-1">
+                  <SourceList sources={a.sources ?? []} />
+                </div>
               </li>
             ))}
           </ul>
@@ -228,6 +235,9 @@ export default function HomePage() {
               </div>
               <p className="font-medium">{item.title}</p>
               <p className="text-sm text-(--ink-2) text-justify">{item.description}</p>
+              <div className="mt-1">
+                <SourceList sources={item.sources ?? []} />
+              </div>
             </li>
           ))}
         </ul>
