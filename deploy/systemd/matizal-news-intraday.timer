@@ -1,0 +1,10 @@
+[Unit]
+Description=Ejecuta la revisión intradía de Matizal News a las 14:00 y 19:00 Europe/Madrid
+
+[Timer]
+OnCalendar=*-*-* 14:00:00 Europe/Madrid
+OnCalendar=*-*-* 19:00:00 Europe/Madrid
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=Matizal News - revisión intradía (14:00/19:00 Europe/Madrid)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/news-matizal/.env
+ExecStart=/usr/bin/curl -fsS -X POST -H "x-cron-secret: ${CRON_SECRET}" http://127.0.0.1:3021/api/cron/intraday
+StandardOutput=append:/var/log/matizal-news/generate-intraday.log
+StandardError=append:/var/log/matizal-news/generate-intraday.log

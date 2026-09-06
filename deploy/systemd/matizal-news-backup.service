@@ -1,0 +1,10 @@
+[Unit]
+Description=Matizal News - backup diario de la SQLite (02:30 Europe/Madrid)
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/news-matizal
+ExecStart=/opt/news-matizal/scripts/backup.sh
+StandardOutput=append:/var/log/matizal-news/backup.log
+StandardError=append:/var/log/matizal-news/backup.log

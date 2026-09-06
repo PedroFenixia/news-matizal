@@ -1,0 +1,9 @@
+[Unit]
+Description=Ejecuta el backup diario de Matizal News a las 02:30 Europe/Madrid
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 Europe/Madrid
+Persistent=true
+
+[Install]
+WantedBy=timers.target

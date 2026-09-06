@@ -33,11 +33,12 @@ propio bajo `https://news.matizal.com`.
 │  /var/log/matizal-news/            ← logs de cron                │
 │  /var/backups/matizal-news/        ← backups diarios             │
 │                                                                   │
-│  crontab / systemd timer (fuera de Docker, en el host o          │
-│  ejecutando dentro del contenedor vía `docker compose exec`):    │
-│    - scripts/generate-daily.ts   ~10:00 Europe/Madrid, diario    │
-│    - scripts/cleanup.ts          03:00 Europe/Madrid, día 5      │
-│    - scripts/backup.sh           02:30 Europe/Madrid, diario     │
+│  systemd timers (host, fuera de Docker — NO crontab: CRON_TZ no  │
+│  funciona en Debian, ver sección 7):                             │
+│    - matizal-news-daily.timer      10:00 Europe/Madrid, diario  │
+│    - matizal-news-intraday.timer   14:00 y 19:00, diario         │
+│    - matizal-news-cleanup.timer    03:00, día 5 del mes          │
+│    - matizal-news-backup.timer     02:30 Europe/Madrid, diario   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -50,8 +51,8 @@ blob store gestionado.
 ### Flujo de generación diaria
 
 ```
-crontab (host o systemd timer)
-   │  ~10:00 Europe/Madrid
+systemd timer (matizal-news-daily.timer, host)
+   │  10:00 Europe/Madrid
    ▼
 scripts/generate-daily.ts ──┐
                              │  comparten lógica de negocio
@@ -183,9 +184,10 @@ ejecución loggea qué fechas se eliminaron.
 
 Se invoca de dos formas (comparten la misma función):
 
-1. **`scripts/cleanup.ts`** vía crontab/systemd timer en el VPS (recomendado).
-2. **`POST /api/cron/cleanup`** (protegido por `CRON_SECRET`), como vía
-   alternativa de invocación HTTP manual/externa.
+1. **`POST /api/cron/cleanup`** (protegido por `CRON_SECRET`), invocado por
+   `matizal-news-cleanup.timer` en producción (systemd, no crontab — ver
+   sección 7).
+2. **`scripts/cleanup.ts`** para invocación manual/externa fuera de Docker.
 
 ---
 
@@ -212,33 +214,38 @@ romperse — nunca página vacía sin explicación.
 
 ### Generación diaria
 
-- **Script standalone** (recomendado para producción):
-  `scripts/generate-daily.ts`, invocado por crontab o systemd timer:
+> **⚠️ `CRON_TZ` en crontab NO funciona como cabría esperar en Debian/vixie-cron
+> (descubierto en producción el 2026-09-06).** El propio changelog de Debian
+> del paquete `cron` describe el soporte de zona horaria como un
+> "workaround" documentado en `crontab.5`, no una directiva real que el
+> demonio interprete: `CRON_TZ=Europe/Madrid` se pasa como variable de
+> entorno al proceso lanzado, pero el DEMONIO sigue evaluando las horas del
+> crontab en la zona horaria del SISTEMA (`Etc/UTC` en este VPS). Resultado
+> real observado: una línea `0 10 * * *` bajo `CRON_TZ=Europe/Madrid` se
+> disparaba a las 10:00 **UTC** (12:00 Madrid en verano), no a las 10:00
+> Madrid — 2 horas tarde, sin ningún error visible. **Por eso el mecanismo
+> soportado en este proyecto son systemd timers** (`OnCalendar=... Europe/Madrid`
+> sí resuelve la zona horaria correctamente, verificado con
+> `systemd-analyze calendar`), no crontab.
 
-  ```cron
-  # crontab -e (usuario con acceso al proyecto)
-  # 10:00 Europe/Madrid = 08:00 UTC en horario de verano (CEST, ~fin marzo a
-  # fin octubre) / 09:00 UTC en horario de invierno (CET). Ajusta según la
-  # época del año, o usa un systemd timer con OnCalendar y TZ=Europe/Madrid
-  # (recomendado, gestiona el cambio de hora automáticamente).
-  0 8 * * * cd /path/to/news-matizal && /usr/bin/npx tsx scripts/generate-daily.ts >> /var/log/matizal-news/generate-daily.log 2>&1
-  ```
-
-  Alternativa con **systemd timer** (gestiona DST automáticamente):
+- **Systemd timer** (mecanismo soportado, unidades versionadas en
+  `deploy/systemd/`):
 
   ```ini
-  # /etc/systemd/system/matizal-news-generate.service
+  # deploy/systemd/matizal-news-daily.service
   [Unit]
-  Description=Matizal News - generación diaria de briefings
+  Description=Matizal News - generación diaria de briefings (10:00 Europe/Madrid)
+  After=network-online.target
+  Wants=network-online.target
 
   [Service]
   Type=oneshot
-  WorkingDirectory=/path/to/news-matizal
-  ExecStart=/usr/bin/npx tsx scripts/generate-daily.ts
+  EnvironmentFile=/opt/news-matizal/.env
+  ExecStart=/usr/bin/curl -fsS -X POST -H "x-cron-secret: ${CRON_SECRET}" http://127.0.0.1:3021/api/cron/daily
   StandardOutput=append:/var/log/matizal-news/generate-daily.log
   StandardError=append:/var/log/matizal-news/generate-daily.log
 
-  # /etc/systemd/system/matizal-news-generate.timer
+  # deploy/systemd/matizal-news-daily.timer
   [Unit]
   Description=Ejecuta la generación diaria de Matizal News a las 10:00 Europe/Madrid
 
@@ -250,14 +257,26 @@ romperse — nunca página vacía sin explicación.
   WantedBy=timers.target
   ```
 
+  Instalación (unidades corren como root vía systemd de sistema, que puede
+  leer el `.env` con permisos `600` de `debian` sin problema):
+
   ```bash
-  sudo systemctl enable --now matizal-news-generate.timer
+  sudo cp deploy/systemd/matizal-news-daily.{service,timer} /etc/systemd/system/
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now matizal-news-daily.timer
+  systemctl list-timers matizal-news-daily.timer  # confirma el próximo disparo
   ```
+
+  Verifica SIEMPRE la interpretación de zona horaria de un `OnCalendar`
+  nuevo antes de confiar en él: `systemd-analyze calendar '*-*-* 10:00:00
+  Europe/Madrid'` muestra el próximo disparo real en UTC.
 
 - **Endpoint HTTP** `POST /api/cron/daily` (protegido por `CRON_SECRET`, vía
   header `x-cron-secret` o `?secret=`): misma lógica de negocio
-  (`lib/briefing-generator.ts`), útil para disparar manualmente o desde un
-  sistema de monitorización externo.
+  (`lib/briefing-generator.ts`), útil para disparar manualmente
+  (`sudo systemctl start matizal-news-daily.service` también sirve para
+  probarlo a mano sin esperar al timer) o desde un sistema de monitorización
+  externo.
 
 ### "Actualizar ahora" (actualización extraordinaria)
 
@@ -335,21 +354,20 @@ cuando la edición activa es una revisión intradía con cambios,
 `CRON_SECRET`, igual que `/api/cron/daily`) o `scripts/generate-intraday.ts`
 (este último solo utilizable si el proyecto corre con Node ≥22 fuera de
 Docker — la imagen `standalone` no incluye `scripts/`/`tsx`, ver sección
-13.8). En producción, instalado en el crontab del usuario `debian` del VPS,
-bajo el mismo bloque `CRON_TZ=Europe/Madrid` que el resto de jobs de
-Matizal News (gestiona el cambio de hora automáticamente):
+13.8). En producción, `matizal-news-intraday.timer` (`deploy/systemd/`),
+un único timer con dos `OnCalendar` (14:00 y 19:00 Europe/Madrid):
 
-```cron
-CRON_TZ=Europe/Madrid
-# revisión intradía (14:00 y 19:00)
-0 14 * * * curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" http://127.0.0.1:3021/api/cron/intraday >> /var/log/matizal-news/generate-intraday.log 2>&1
-0 19 * * * curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" http://127.0.0.1:3021/api/cron/intraday >> /var/log/matizal-news/generate-intraday.log 2>&1
+```ini
+[Timer]
+OnCalendar=*-*-* 14:00:00 Europe/Madrid
+OnCalendar=*-*-* 19:00:00 Europe/Madrid
+Persistent=true
 ```
 
 **Estado: ACTIVO en producción** (activado tras la prueba manual y
 confirmación explícita del usuario). Si necesitas replicar este setup en
 otro entorno, sigue el mismo orden: prueba manual primero (sección
-siguiente), activa el cron después.
+siguiente), activa el timer después.
 
 ### Limpieza mensual
 
@@ -359,30 +377,38 @@ edición inicial de revisión intradía — `DELETE FROM editions WHERE date
 LIKE '<mes>-%'` borra por fecha, no por `edition_id`, así que cubre
 automáticamente cualquier número de revisiones por día.
 
-Cron recomendado:
+Systemd timer (`matizal-news-cleanup.timer`, `deploy/systemd/`):
 
-```cron
-0 3 5 * * cd /path/to/news-matizal && /usr/bin/npx tsx scripts/cleanup.ts >> /var/log/matizal-news/cleanup.log 2>&1
+```ini
+[Timer]
+OnCalendar=*-*-05 03:00:00 Europe/Madrid
+Persistent=true
 ```
 
 ### Backups
 
-```cron
-30 2 * * * cd /path/to/news-matizal && ./scripts/backup.sh >> /var/log/matizal-news/backup.log 2>&1
+Systemd timer (`matizal-news-backup.timer`, `deploy/systemd/`):
+
+```ini
+[Timer]
+OnCalendar=*-*-* 02:30:00 Europe/Madrid
+Persistent=true
 ```
 
 Usa `sqlite3 "$DB" ".backup '...'"` (backup online, seguro con la BD en uso),
 no una copia de fichero en caliente. Conserva los últimos 30 días.
 
-### Prueba manual antes de activar un cron nuevo
+### Prueba manual antes de activar un timer nuevo
 
-**Estado actual en producción: los tres cron (edición 10:00, revisión
-intradía 14:00/19:00, limpieza mensual día 5) están ACTIVOS** en el
-crontab del VPS, activados tras probar el flujo manualmente y con
-confirmación explícita del usuario. Si en el futuro añades un cron nuevo
-(otro horario, otro tipo de ejecución), sigue el mismo orden antes de
-instalarlo — activar un cron es siempre una acción manual y deliberada,
-nunca algo que se haga solo:
+**Estado actual en producción: los cuatro systemd timers (edición 10:00,
+revisión intradía 14:00/19:00, backup 02:30, limpieza mensual día 5) están
+ACTIVOS** (`deploy/systemd/`), activados tras probar el flujo manualmente y
+con confirmación explícita del usuario — y tras descubrir en producción que
+el mecanismo original (crontab con `CRON_TZ=Europe/Madrid`) no funcionaba
+como se documentó inicialmente (ver aviso al principio de esta sección). Si
+en el futuro añades un timer nuevo (otro horario, otro tipo de ejecución),
+sigue el mismo orden antes de instalarlo — activar un timer es siempre una
+acción manual y deliberada, nunca algo que se haga solo:
 
 ```bash
 # 1. Test de fuentes: comprueba que los RSS responden, SIN gastar tokens de OpenAI.
@@ -408,8 +434,8 @@ npm run cleanup
 ```
 
 Solo tras revisar el resultado de estos pasos (contenido, coste en
-`/admin/usage`, ausencia de errores) tiene sentido instalar los cron reales
-en el crontab del VPS (ver sección 13.8 más abajo). No hay recuperación
+`/admin/usage`, ausencia de errores) tiene sentido instalar los timers
+reales (ver sección 13.8 más abajo). No hay recuperación
 automática de una ejecución que "debería haber pasado": si el cron de las
 10:00 no corrió (o corrió y falló), no se dispara solo — se lanza a mano.
 
@@ -655,9 +681,37 @@ Si no se configura, el workflow simplemente no se dispara con éxito — el
 despliegue manual (`./scripts/deploy.sh` por SSH) sigue siendo la vía
 principal y suficiente.
 
-### 13.8. Cron del sistema (generación + limpieza + backups)
+### 13.8. Systemd timers (generación + revisión intradía + limpieza + backups)
 
-Ver sección 7 para los ejemplos completos de crontab / systemd timer.
+**NO uses crontab con `CRON_TZ`** — ver el aviso al principio de la sección
+7: en Debian, el demonio cron ignora la zona horaria declarada y evalúa los
+horarios en la zona del sistema, desfasando la ejecución real varias horas
+sin ningún error visible. El mecanismo soportado son las 4 unidades systemd
+en `deploy/systemd/` (`matizal-news-daily`, `-intraday`, `-cleanup`,
+`-backup`, cada una con su `.service` + `.timer`):
+
+```bash
+sudo cp deploy/systemd/matizal-news-*.service deploy/systemd/matizal-news-*.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now \
+  matizal-news-daily.timer \
+  matizal-news-intraday.timer \
+  matizal-news-cleanup.timer \
+  matizal-news-backup.timer
+
+# Verificar próximos disparos (confirma que la zona horaria se interpreta bien):
+systemctl list-timers matizal-news-*
+
+# Probar una unidad a mano sin esperar al timer:
+sudo systemctl start matizal-news-daily.service
+```
+
+Los `.service` de `daily`/`intraday`/`cleanup` cargan `CRON_SECRET` desde
+`EnvironmentFile=/opt/news-matizal/.env` (systemd corre como root, que
+puede leer el fichero aunque tenga permisos `600` de `debian`) y llaman al
+endpoint HTTP correspondiente con `curl` — mismo patrón que se usaba con
+crontab, solo cambia quién dispara la ejecución. Ver sección 7 para el
+contenido completo de cada unidad.
 
 ---
 
